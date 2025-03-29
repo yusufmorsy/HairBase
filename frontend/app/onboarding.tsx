@@ -1,13 +1,12 @@
-import ProgressBar from "@/components/ProgressBar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { View, Pressable, StyleSheet, Text, Easing } from "react-native";
+import { View, Pressable, StyleSheet, Text } from "react-native";
 import PagerView from "react-native-pager-view";
 import Animated, { ReduceMotion, withTiming } from "react-native-reanimated";
 import {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  Easing,
 } from "react-native-reanimated";
 
 export default function OnboardingPage() {
@@ -22,7 +21,7 @@ export default function OnboardingPage() {
   const animatedWidth = useAnimatedStyle(() => {
     return {
       width: withTiming(`${((progress.value + 1) / maxProgress) * 100}%`, {
-        duration: 100,
+        duration: 50,
         easing: Easing.linear,
         reduceMotion: ReduceMotion.System,
       }),
