@@ -15,7 +15,10 @@ import {
   BottomSheetModal,
   BottomSheetView,
   BottomSheetModalProvider,
+  BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+import ProductSkeleton from "@/components/ProductSkeleton";
+import ProductTile from "@/components/ProductTile";
 
 type Product = {
   brand_name: string;
@@ -48,11 +51,14 @@ export default function ScanScreen() {
 
   const takePicture = async () => {
     setProduct(undefined);
+
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
     bottomSheetModalRef.current?.present();
+
     const picture = await cameraViewRef?.current?.takePictureAsync({
       base64: true,
-      quality: 0.5,
+      quality: 0.25,
     });
     const product: Product = await (
       await fetch("https://blasterhacks.lenixsavesthe.world/groq-ocr", {
@@ -66,6 +72,8 @@ export default function ScanScreen() {
       })
     ).json();
     setProduct(product);
+
+    bottomSheetModalRef.current?.snapToIndex(1);
   };
 
   return (
@@ -81,17 +89,115 @@ export default function ScanScreen() {
         </CameraView>
 
         {/* Bottom Sheet */}
-        <BottomSheetModal ref={bottomSheetModalRef}>
-          <BottomSheetView style={styles.modalContentContainer}>
+        <BottomSheetModal
+          ref={bottomSheetModalRef}
+          snapPoints={[150, 300, "90%"]}
+          enableDynamicSizing={false}
+        >
+          <BottomSheetScrollView
+            contentContainerStyle={styles.modalContentContainer}
+          >
             {product ? (
-              <View>
-                <Text>{product.product_name}</Text>
-                <Text>{product.brand_name}</Text>
+              <View style={styles.productList}>
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
+                <ProductTile
+                  product={{
+                    id: 1,
+                    name: product.product_name,
+                    brand: product.brand_name,
+                  }}
+                />
               </View>
             ) : (
-              <ActivityIndicator size={32} />
+              <View style={styles.productList}>
+                <ProductSkeleton />
+                <ProductSkeleton />
+              </View>
             )}
-          </BottomSheetView>
+          </BottomSheetScrollView>
         </BottomSheetModal>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
@@ -122,7 +228,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContentContainer: {
-    flex: 1,
+    // flex: 1,
     padding: 24,
     // alignItems: "center",
   },
@@ -130,5 +236,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "white",
+  },
+  productList: {
+    gap: 16,
   },
 });
