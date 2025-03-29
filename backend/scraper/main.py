@@ -2,6 +2,8 @@ import dotenv
 import os
 dotenv.load_dotenv()
 import database
+import scraper
+
 
 if __name__ == "__main__":
 
@@ -9,6 +11,9 @@ if __name__ == "__main__":
     print(db_key)
 
     conn = database.connect_to_db(db_key)
+
+
+    page_cnt = scraper.getPageCount("cat130038")
 
     
 
