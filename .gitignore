@@ -1,0 +1,11 @@
+# Generic ignores
+*.pyc
+__pycache__/
+.env
+
+# Node modules
+node_modules/
+
+# Local IDE files
+.vscode/
+.idea/
