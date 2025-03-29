@@ -1,7 +1,9 @@
+import Button from "@/components/Button";
 import Hero from "@/components/Hero";
+import Feather from "@expo/vector-icons/Feather";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import { View, Pressable, StyleSheet, Text } from "react-native";
 import PagerView from "react-native-pager-view";
 import Animated, { ReduceMotion, withTiming } from "react-native-reanimated";
@@ -11,6 +13,7 @@ import {
   Easing,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 
 // A simple multiple-choice component (single selection)
 const MultipleChoice = ({
@@ -84,6 +87,8 @@ export default function OnboardingPage() {
   const [ingredientPrefs, setIngredientPrefs] = React.useState<string[]>([]);
   const [concerns, setConcerns] = React.useState<string[]>([]);
 
+  const pagerViewRef = useRef<PagerView>(null);
+
   const onComplete = async () => {
     // Optionally, save user selections to AsyncStorage or send to your backend
     const onboardingData = {
@@ -127,10 +132,19 @@ export default function OnboardingPage() {
     );
   };
 
+  const advancePager = () => {
+    pagerViewRef?.current?.setPage(Math.round(progress.value) + 1);
+  };
+
+  const boop = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
   return (
     <View style={styles.container}>
       <PagerView
         initialPage={0}
+        ref={pagerViewRef}
         style={styles.pagerView}
         onPageScroll={(event) => {
           const { position, offset } = event.nativeEvent;
@@ -149,7 +163,11 @@ export default function OnboardingPage() {
             question="What is your hair texture?"
             options={["Curly", "Wavy", "Straight", "Coily"]}
             selectedValue={hairTexture}
-            onSelect={setHairTexture}
+            onSelect={(hairTexture) => {
+              boop();
+              setHairTexture(hairTexture);
+              advancePager();
+            }}
           />
         </View>
 
@@ -160,7 +178,11 @@ export default function OnboardingPage() {
             question="What is your hair type?"
             options={["Fine", "Medium", "Thick"]}
             selectedValue={hairType}
-            onSelect={setHairType}
+            onSelect={(hairType) => {
+              boop();
+              setHairType(hairType);
+              advancePager();
+            }}
           />
         </View>
 
@@ -178,6 +200,16 @@ export default function OnboardingPage() {
             ]}
             selectedValues={ingredientPrefs}
             onToggle={toggleIngredientPref}
+          />
+          <Button
+            text="Continue"
+            icon={({ size, color }) => (
+              <Feather size={size} color={color} name="arrow-right" />
+            )}
+            onPress={() => {
+              boop();
+              advancePager();
+            }}
           />
         </View>
 
