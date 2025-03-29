@@ -1,16 +1,19 @@
 import requests
-import json
 import re
 
 
 class Product:
-    def __init__(self,sku, name, brand, img, rating_cnt, avg_rating):
+    def __init__(self, sku, name: str, brand: str, img: str, rating_cnt: int, avg_rating: int, concerns, textures, types, ingredients) :
         self.sku = sku
         self.name = name
         self.brand = brand
         self.img = img
         self.rating_cnt = rating_cnt
         self.avg_rating = avg_rating
+        self.concerns = concerns
+        self.textures = textures
+        self.types = types
+        self.ingredients = ingredients
 
 # Returns texture, type, benefits
 def parseRegex(text: str):
