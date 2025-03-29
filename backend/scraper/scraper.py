@@ -17,8 +17,8 @@ class Product:
         self.types = types
         self.ingredients = ingredients
         self.benefits =  benefits
-        self.price
-        self.size
+        self.price = price
+        self.size = size
 
 # Returns texture, type, benefits
 def parseRegex(text: str):
@@ -34,22 +34,21 @@ def parseRegex(text: str):
     benefits = re.findall(benefits_pattern, text)
 
     if len(benefits) == 0:
-        return "", ""
+        return "", "", ""
 
 
     if len(textures) == 0:
-        return "", ""
+        return "", "", ""
 
 
     if len(types) == 0:
-        return "", ""
+        return "", "", ""
     
     benefit_strip = benefits[0].split("Highlighted Ingredients:")[0]
     key_benefit = [benefit.strip() for benefit in benefit_strip.split("-")]
     for i in range(0, len(key_benefit)):
         if "Formulation" in key_benefit[i]:
             key_benefit[i] = key_benefit[i].split("Formulation")[0]
-    # print(key_benefit)
 
     if not any(_ in textures[0] for _ in anyTexture):
         # print("Textures Match!")
@@ -71,7 +70,7 @@ def parseRegex(text: str):
     except ValueError:
         pass
 
-    return texture_list, types_list
+    return texture_list, types_list, benefit_strip
 
 def normalizeText(text: str) -> str:
     t = text.replace(" - ", " -")
@@ -86,15 +85,12 @@ def getPageCount(category_id: str) -> int:
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
     'Accept-Language': 'en-US,en;q=0.9',
-        }
+    }
     
     params = (
     ('c', 'ciojs-client-2.62.2'),
     ('key', 'u7PNVQx-prod-en-us'),
-    # ('i', 'bba62100-82f5-4901-bc87-dce7c8eee364'),
     ('s', '2'),
-    # ('ids', 'P412087'),
-    # ('variations_map', '{"values":{"network_status":{"aggregation":"max","field":"data.sku_availability.network_SEPHORAUS"},"store_status":{"aggregation":"max","field":"data.sku_availability.store_123"},"sku_count":{"aggregation":"count"},"sale_count":{"aggregation":"value_count","field":"data.facets.on_sale","value":true},"min_list_price":{"aggregation":"min","field":"data.currentSku.listPriceFloat"},"max_list_price":{"aggregation":"max","field":"data.currentSku.listPriceFloat"},"min_sale_price":{"aggregation":"min","field":"data.currentSku.salePriceFloat"},"max_sale_price":{"aggregation":"max","field":"data.currentSku.salePriceFloat"},"min_price":{"aggregation":"min","field":"data.currentSku.finalPriceFloat"},"max_price":{"aggregation":"max","field":"data.facets.finalPriceFloat"},"moreColors":{"aggregation":"all","field":"data.currentSku.colorName"}},"dtype":"object"}'),
     )
 
     response = requests.get('https://sephora.cnstrc.com/browse/group_id/' + category_id, headers=headers, params=params)
@@ -108,6 +104,7 @@ def getPagefromCat(page:int, category: str) -> List[Product]:
     prodList = []
     concerns = None
     ingredients = None
+    benefits = None
     headers = {
         'Host': 'sephora.cnstrc.com',
         'Connection': 'keep-alive',
@@ -128,7 +125,6 @@ def getPagefromCat(page:int, category: str) -> List[Product]:
     response = requests.get('https://sephora.cnstrc.com/browse/group_id/' + category, headers=headers, params=params)
     resp = response.json()
     results = resp["response"]["results"]
-
     for item in results:
         brand = item["data"]["brandName"]
         prod_name = item["value"]
@@ -139,24 +135,35 @@ def getPagefromCat(page:int, category: str) -> List[Product]:
                     concerns = i["values"]
                 case "Ingredient Preferences":
                     ingredients = i["values"]
+        
+            img = item["data"]["image_url"].split("?")[0]
+            avg_rating = item["data"]["rating"]
+            rating_cnt = item["data"]["totalReviews"]
+            sku = item["data"]["currentSku"]["skuId"]
+            price = item["data"]["currentSku"]["listPriceFloat"]
+            extDesc = item["data"]["extended_description"]
+        try:
+            size = item["data"]["currentSku"]["variationValue"]
+        except KeyError as e:
+            if e.args[0] == "variationValue":
+                size = ""
+            else:
+                print(f"sku: {sku} does not have key: {e.args}")
 
-        img = {item["data"]["image_url"].split("?")[0]}
-        avg_rating = {item["data"]["rating"]}
-        rating_cnt = {item["data"]["totalReviews"]}
-        sku = item["data"]["currentSku"]["skuId"]
-        extDesc = item["data"]["extended_description"]
         cleanText = normalizeText(extDesc)
-        textures, types = parseRegex(cleanText)
+        textures, types, benefits = parseRegex(cleanText)
         if (textures == ""):
-            textures = "N/A"
+            textures = []
         
         if (types == ""):
-            types = "N/A"
+            types = []
 
+        if (benefits == ""):
+            benefits = []
         try :
-            p = Product(sku, prod_name, brand, img, rating_cnt, avg_rating, concerns, textures, types, ingredients)
+            p = Product(sku, prod_name, brand, img, rating_cnt, avg_rating, concerns, textures, types, ingredients, benefits, price, size)
             prodList.append(p)
-        finally:
-            print("error creating product: sku", sku)
+        except Exception:
+            print(f"error creating product: {sku}, {Exception}", sku)
 
     return prodList

@@ -19,8 +19,10 @@ if __name__ == "__main__":
     for i in range (1, page_cnt):
         prods = scraper.getPagefromCat(i, cat)
 
-        for i in range (0, 20):
-            print(prods[i].sku)
+        for i in range (0, 1):
+            (prods[i].sku) 
+            database.insert_product(prods[i], conn)
+
     
     conn.close()
     
