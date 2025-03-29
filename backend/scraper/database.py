@@ -47,12 +47,64 @@ def insert_texture_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow])
                 """, (sku, texture_id))
             
         conn.commit()
+        print("inserted texture pivots for sku:", sku)
 
 def insert_type_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow]):
 
     with conn.cursor() as cur:
-        pass
+        for i in attrs:
+            cur.execute("""
+                SELECT id 
+                FROM types
+                WHERE name = %s
+            """, (i,))
+            type_id = cur.fetchone()
+            if type_id:
+                type_id = type_id[0]
 
+            cur.execute("""
+                INSERT INTO types_to_products (product_id, type_id)
+                VALUES (%s, %s)
+            """, (sku, type_id))
+    conn.commit()
+    print("inserted type pivots for sku:", sku)
+
+def insert_ingredients(sku: str, attrs: List[str], conn: Connection[TupleRow]):
+    # check to see if ingredient is already in DB
+    with conn.cursor() as cur:
+        for i in attrs:
+            cur.execute("""
+                SELECT * 
+                FROM ingredients
+                WHERE name = %s
+            """, (i,))
+
+            v = cur.fetchone()
+            if not v:
+                #if value is not in the table, insert it
+                print("value not found, inserting...")
+                cur.execute("""
+                    INSERT INTO ingredients (name) VALUES (%s)
+                """, (i,))
+
+            # query again no matter what to get the ID
+            cur.execute("""
+                SELECT * 
+                FROM ingredients
+                WHERE name = %s
+            """, (i,))
+
+            # we already know the id has to exist
+            ingredient_id = cur.fetchone()
+            ingredient_id = ingredient_id[0]
+
+            cur.execute("""
+                INSERT INTO ingredient_to_products (product_id, ingredient_id)
+                VALUES (%s, %s)
+            """, (sku, ingredient_id))
+
+        conn.commit()
+        print("inserted type pivots for sku:", sku)
 
 
 def insert_one(item: str, table: str, conn: Connection[TupleRow]):
