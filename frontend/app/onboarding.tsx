@@ -75,7 +75,7 @@ const Checklist = ({
 
 export default function OnboardingPage() {
   const progress = useSharedValue(0);
-  const maxProgress = 4;
+  const maxProgress = 5;
 
   // Declare state variables with type annotations
   const [hairTexture, setHairTexture] = React.useState<string | null>(null);
@@ -138,34 +138,39 @@ export default function OnboardingPage() {
       >
         {/* Page 1: Hair Texture */}
         <View style={styles.page} key="1">
+          <View style={styles.hero}></View>
+        </View>
+
+        {/* Page 1: Hair Texture */}
+        <View style={styles.page} key="2">
           <MultipleChoice
             question="What is your hair texture?"
-            options={["curly", "wavy", "straight", "coily"]}
+            options={["Curly", "Wavy", "Straight", "Coily"]}
             selectedValue={hairTexture}
             onSelect={setHairTexture}
           />
         </View>
 
         {/* Page 2: Hair Type */}
-        <View style={styles.page} key="2">
+        <View style={styles.page} key="3">
           <MultipleChoice
             question="What is your hair type?"
-            options={["fine", "medium", "thick"]}
+            options={["Fine", "Medium", "Thick"]}
             selectedValue={hairType}
             onSelect={setHairType}
           />
         </View>
 
         {/* Page 3: Ingredient Preferences */}
-        <View style={styles.page} key="3">
+        <View style={styles.page} key="4">
           <Checklist
             question="What are your ingredient preferences?"
             options={[
-              "cruelty-free",
-              "paraben-free",
-              "silicone free",
-              "sulfate free",
-              "vegan",
+              "Cruelty-Free",
+              "Paraben-Free",
+              "Silicone Free",
+              "Sulfate Free",
+              "Vegan",
             ]}
             selectedValues={ingredientPrefs}
             onToggle={toggleIngredientPref}
@@ -173,16 +178,16 @@ export default function OnboardingPage() {
         </View>
 
         {/* Page 4: Hair Concerns */}
-        <View style={styles.page} key="4">
+        <View style={styles.page} key="5">
           <Checklist
             question="What concerns do you have?"
             options={[
-              "dryness",
-              "frizz",
-              "shine",
-              "uv protection",
-              "color-safe",
-              "heat protection",
+              "Dryness",
+              "Frizz",
+              "Shine",
+              "UV Protection",
+              "Color-Safe",
+              "Heat Protection",
             ]}
             selectedValues={concerns}
             onToggle={toggleConcern}
@@ -209,9 +214,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   page: {
-    justifyContent: "center",
-    alignItems: "center",
     flex: 1,
+  },
+  hero: {
+    height: 900,
+    width: "100%",
+    backgroundColor: "#a7cee2",
+    linear
   },
   questionContainer: {
     width: "100%",

@@ -4,6 +4,8 @@ from groq import Groq
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import json
+import psycopg
+from psycopg.rows import dict_row
 
 app = FastAPI()
 load_dotenv()
@@ -31,7 +33,7 @@ async def groq_api_call(request: ImageRequest):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": """ What is the brand name, product name, and product type (shampoo, conditioner)? Give me your response in JSON, without any additional formatting. For example, {"brand_name": "Dove", "product_name": "Lavender Plus", "product_type": "shampoo"}. Please respond in this exact format, but using the given image. """},
+                        {"type": "text", "text": """This is a picture of a hair product (like shampoo or conditioner). Using only the product and brand name (no extra information), please give me a search query to find this item. For example, for a different product, with the name 'Lavender & Volume', by a company named 'Dove', you would say, "Dove Lavender & Volume". It might not be that simple, though, so do your best. Please do not include any additional formatting or commentary."""},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -47,5 +49,28 @@ async def groq_api_call(request: ImageRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing Groq request: {str(e)}")
 
-    result = chat_completion.choices[0].message.content
-    return json.loads(result)
+    generated_search_query = chat_completion.choices[0].message.content
+    
+    # Needs settings here
+    
+
+
+@app.get("/search")
+def product_search(query: str):
+    conn = psycopg.Connection.connect(row_factory=dict_row)
+    conn.execute("""
+                SELECT
+                    products.id,
+                    products.name,
+                    brands.id,
+                    brands.name,
+                    to_tsvector(products.title || ' ' || products.name || ' ' || brands.name ) AS vector,
+                    plainto_tsquery(?) AS query
+                    ts_rank(vector, query) AS rank,
+                FROM
+                    products INNER JOIN brands 
+                        ON products.brand_id = brands.id
+                WHERE vector @@ query
+            """, query)
+    
+    return conn.fetchall()

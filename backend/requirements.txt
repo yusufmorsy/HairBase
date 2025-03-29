@@ -1,6 +1,6 @@
 fastapi
 fastapi[standard]
-psycopg2
+psycopg[binary]
 groq
 dotenv
 uvicorn
