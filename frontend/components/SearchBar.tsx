@@ -24,7 +24,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    height: 32,
   },
   input: {
     fontSize: 18,
