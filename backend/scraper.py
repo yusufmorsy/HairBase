@@ -1,5 +1,34 @@
 import requests
 import json
+import re
+
+def parseRegex(text: str) -> str:
+
+    anyTexture = ["Straight", "Wavy", "Curly", "Coily"]
+    anyType = ["Fine", "Medium", "Thick"]
+
+    texture_pattern = r"Hair Texture:\s*([A-Za-z, and]+)"
+    type_pattern = r"Hair Type:\s*([A-Za-z, and]+)"
+    textures = re.findall(texture_pattern, text)
+    types = re.findall(type_pattern, text)
+    if len(textures) == 0:
+        return
+
+
+    if len(types) == 0:
+        return
+    
+
+    if not any(_ in textures[0] for _ in anyTexture):
+        # print("Textures Match!")
+        t = textures
+        textures = types
+        types = t
+
+    print("Target Textures:", textures[0].split("Hair")[0])
+    print("Target Types:", types[0].split("Hair")[0])
+    
+    return ""
 
 headers = {
     'Host': 'sephora.cnstrc.com',
@@ -26,7 +55,7 @@ params = (
     # ('variations_map', '{"values":{"network_status":{"aggregation":"max","field":"data.sku_availability.network_SEPHORAUS"},"store_status":{"aggregation":"max","field":"data.sku_availability.store_123"},"sku_count":{"aggregation":"count"},"sale_count":{"aggregation":"value_count","field":"data.facets.on_sale","value":true},"min_list_price":{"aggregation":"min","field":"data.currentSku.listPriceFloat"},"max_list_price":{"aggregation":"max","field":"data.currentSku.listPriceFloat"},"min_sale_price":{"aggregation":"min","field":"data.currentSku.salePriceFloat"},"max_sale_price":{"aggregation":"max","field":"data.currentSku.salePriceFloat"},"min_price":{"aggregation":"min","field":"data.currentSku.finalPriceFloat"},"max_price":{"aggregation":"max","field":"data.facets.finalPriceFloat"},"moreColors":{"aggregation":"all","field":"data.currentSku.colorName"}},"dtype":"object"}'),
 )
 
-response = requests.get('https://sephora.cnstrc.com/browse/group_id/cat150006', headers=headers, params=params)
+response = requests.get('https://sephora.cnstrc.com/browse/group_id/cat130038', headers=headers, params=params)
 
 #NB. Original query string below. It seems impossible to parse and
 #reproduce query strings 100% accurately so the one below is given
@@ -50,8 +79,15 @@ for item in results:
             case "Ingredient Preferences":
                 print(f'Ingredient Preferences: {i["values"]}')
 
-
     print(f'Image URL: {item["data"]["image_url"].split("?")[0]}')   
     print(f'Avg Rating: {item["data"]["rating"]}')   
     print(f'Total Reviews: {item["data"]["totalReviews"]}')
+
+    extDesc = item["data"]["extended_description"]
+
+    str = parseRegex(extDesc)
+
     print("----")
+
+print(response.url)
+
