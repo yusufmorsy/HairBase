@@ -75,7 +75,11 @@ async def groq_api_call(request: ImageRequest):
 
 def search_db(query: str):
     with conn.cursor() as cur:
-        cur.execute("""SELECT *, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s);""", (query, query))
+        cur.execute("""SELECT *, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)) FROM products JOIN concerns_to_products ON concerns_to_products.product_id = products.product_id JOIN concerns ON concerns.id = concerns_to_products.concern_id
+JOIN ingredient_to_products ON ingredient_to_products.product_id = products.product_id JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
+JOIN textures_to_products ON textures_to_products.product_id = products.product_id JOIN textures ON textures.id = textures_to_products.texture_id
+JOIN types_to_products ON types_to_products.product_id = products.product_id JOIN types ON types.id = types_to_products.type_id
+ WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s) LIMIT 20;""", (query, query))
         return cur.fetchall()
 
 @app.get("/search")
