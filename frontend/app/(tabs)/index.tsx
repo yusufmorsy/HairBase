@@ -9,9 +9,9 @@ import {
   Text,
   View,
   Image,
-  SafeAreaView,
 } from "react-native";
 import React, { useState, useEffect } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Product {
   id: string;

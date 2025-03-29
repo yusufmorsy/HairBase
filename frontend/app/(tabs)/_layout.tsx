@@ -17,7 +17,7 @@ const ExpoRouterMaterialTopTabs = withLayoutContext<
 export default function TabLayout() {
   return (
     <ExpoRouterMaterialTopTabs
-      screenOptions={{ tabBarStyle: { display: "none" } }}
+      screenOptions={{ tabBarStyle: { display: "none" }, lazy: false }}
     >
       <ExpoRouterMaterialTopTabs.Screen name="history" />
       <ExpoRouterMaterialTopTabs.Screen name="index" />
