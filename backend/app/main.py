@@ -75,5 +75,5 @@ def connect_to_db():
 @app.get("/search")
 def product_search(query: str):
     conn = connect_to_db()
-    conn.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', ?)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', ?); """, query)
+    conn.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', ?)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', ?); """, [query])
     return conn.fetchall()
