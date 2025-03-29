@@ -20,8 +20,12 @@ def connect_to_db(key: str) -> Connection[TupleRow]:
 
 def insert_product(product: Product, conn: Connection[TupleRow]):
     with conn.cursor() as cur:
-        cur.execute("INSERT INTO products (product_id, product_sku, product_name, brand_name, image_url, rating_cnt, avg_rating) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    (product.sku, product.sku, product.name, product.brand, str(product.img), product.rating_cnt, str(product.avg_rating)))
+        try:
+            cur.execute("INSERT INTO products (product_id, product_sku, product_name, brand_name, image_url, rating_cnt, avg_rating) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                        (product.sku, product.sku, product.name, product.brand, str(product.img), product.rating_cnt, str(product.avg_rating)))
+        except psycopg.errors.UniqueViolation:
+            raise psycopg.errors.UniqueViolation
+
         conn.commit()
 
 
