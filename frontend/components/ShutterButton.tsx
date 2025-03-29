@@ -10,7 +10,7 @@ export default function ShutterButton({ onPress }: Props) {
     <View style={styles.outerContainer}>
       <Pressable style={styles.pressable} onPress={onPress}>
         <View style={styles.innerContainer}>
-          <Feather name="camera" size={32} color="#/>
+          <Feather name="camera" size={32} color="#" />
         </View>
       </Pressable>
     </View>
