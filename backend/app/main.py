@@ -42,11 +42,11 @@ conn = connect_to_db()
 #prompt
 @app.post("/groq-ocr")
 async def groq_api_call(request: ImageRequest):
-    return {
-        "product_name": "Lavender Shampoo",
-        "brand_name": "Dove",
-        "product_type": "shampoo"
-    }
+    # return {
+    #     "product_name": "Lavender Shampoo",
+    #     "brand_name": "Dove",
+    #     "product_type": "shampoo"
+    # }
     try:
         chat_completion = client.chat.completions.create(
             messages=[
@@ -70,6 +70,8 @@ async def groq_api_call(request: ImageRequest):
         raise HTTPException(status_code=500, detail=f"Error processing Groq request: {str(e)}")
 
     generated_search_query = chat_completion.choices[0].message.content
+
+    return product_search(generated_search_query)
     
     # Needs settings here
     
