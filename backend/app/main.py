@@ -10,6 +10,7 @@ from psycopg.rows import dict_row
 app = FastAPI()
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+POSTGRES_URL = os.getenv("POSTGRES_URL")
 
 
 if GROQ_API_KEY is None:
