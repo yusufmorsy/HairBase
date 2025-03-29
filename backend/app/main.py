@@ -71,13 +71,13 @@ async def groq_api_call(request: ImageRequest):
 
     generated_search_query = chat_completion.choices[0].message.content
 
-    return product_search(generated_search_query)
-    
-    # Needs settings here
-    
+    return search_db(generated_search_query)
 
-@app.get("/search")
-def product_search(query: str):
+def search_db(query: str):
     with conn.cursor() as cur:
         cur.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s);""", (query, query))
         return cur.fetchall()
+
+@app.get("/search")
+def product_search(query: str):
+    return search_db(query)
