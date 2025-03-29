@@ -2,7 +2,7 @@ import requests
 import json
 import re
 
-def parseRegex(text: str) -> str:
+def parseRegex(text: str):
 
     anyTexture = ["Straight", "Wavy", "Curly", "Coily"]
     anyType = ["Fine", "Medium", "Thick"]
@@ -12,11 +12,11 @@ def parseRegex(text: str) -> str:
     textures = re.findall(texture_pattern, text)
     types = re.findall(type_pattern, text)
     if len(textures) == 0:
-        return
+        return "", ""
 
 
     if len(types) == 0:
-        return
+        return "", ""
     
 
     if not any(_ in textures[0] for _ in anyTexture):
@@ -25,10 +25,9 @@ def parseRegex(text: str) -> str:
         textures = types
         types = t
 
-    print("Target Textures:", textures[0].split("Hair")[0])
-    print("Target Types:", types[0].split("Hair")[0])
-    
-    return ""
+    # print("Target Textures:", textures[0].split("Hair")[0])
+    # print("Target Types:", types[0].split("Hair")[0])
+    return textures[0].split("Hair")[0], types[0].split("Hair")[0]
 
 headers = {
     'Host': 'sephora.cnstrc.com',
@@ -85,7 +84,15 @@ for item in results:
 
     extDesc = item["data"]["extended_description"]
 
-    str = parseRegex(extDesc)
+    textures, types = parseRegex(extDesc)
+    if (textures == ""):
+        textures = "N/A"
+    
+    if (types == ""):
+        types = "N/A"
+    
+    print(f"Target Textures: {textures}")
+    print(f"Target Types: {types}")
 
     print("----")
 
