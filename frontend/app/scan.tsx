@@ -1,8 +1,21 @@
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 import ShutterButton from "@/components/ShutterButton";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  BottomSheetModal,
+  BottomSheetView,
+  BottomSheetModalProvider,
+} from "@gorhom/bottom-sheet";
 
 type Product = {
   brand_name: string;
@@ -12,7 +25,9 @@ type Product = {
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
-  const ref = useRef<CameraView>(null);
+  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const cameraViewRef = useRef<CameraView>(null);
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -32,28 +47,54 @@ export default function ScanScreen() {
   }
 
   const takePicture = async () => {
+    setProduct(undefined);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    const picture = await ref?.current?.takePictureAsync({
+    bottomSheetModalRef.current?.present();
+    const picture = await cameraViewRef?.current?.takePictureAsync({
       base64: true,
       quality: 0.5,
     });
     const product: Product = await (
-      await fetch("https://", {
+      await fetch("https://blasterhacks.lenixsavesthe.world/groq-ocr", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           image: picture?.base64,
         }),
       })
     ).json();
-    console.log(product);
+    setProduct(product);
   };
 
   return (
-    <View style={styles.container}>
-      <CameraView style={styles.camera} ref={ref} animateShutter={false}>
-        <ShutterButton onPress={takePicture} />
-      </CameraView>
-    </View>
+    <GestureHandlerRootView style={styles.container}>
+      <BottomSheetModalProvider>
+        {/* Camera View */}
+        <CameraView
+          style={styles.camera}
+          ref={cameraViewRef}
+          animateShutter={false}
+        >
+          <ShutterButton onPress={takePicture} />
+        </CameraView>
+
+        {/* Bottom Sheet */}
+        <BottomSheetModal ref={bottomSheetModalRef}>
+          <BottomSheetView style={styles.modalContentContainer}>
+            {product ? (
+              <View>
+                <Text>{product.product_name}</Text>
+                <Text>{product.brand_name}</Text>
+              </View>
+            ) : (
+              <ActivityIndicator size={32} />
+            )}
+          </BottomSheetView>
+        </BottomSheetModal>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -79,6 +120,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: "flex-end",
     alignItems: "center",
+  },
+  modalContentContainer: {
+    flex: 1,
+    padding: 24,
+    // alignItems: "center",
   },
   text: {
     fontSize: 24,

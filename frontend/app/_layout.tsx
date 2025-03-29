@@ -16,7 +16,12 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack screenOptions={{ navigationBarColor: "#fff" }}>
+      <Stack
+        screenOptions={{
+          navigationBarColor: "#ffffff00",
+          navigationBarTranslucent: true,
+        }}
+      >
         <Stack.Screen name="index" options={{ title: "Home" }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="scan" options={{ title: "Scan Product" }} />

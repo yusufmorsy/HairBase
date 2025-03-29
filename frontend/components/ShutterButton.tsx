@@ -9,9 +9,7 @@ export default function ShutterButton({ onPress }: Props) {
   return (
     <View style={styles.outerContainer}>
       <Pressable style={styles.pressable} onPress={onPress}>
-        <View style={styles.innerContainer}>
-          <Feather name="camera" size={32} color="#" />
-        </View>
+        <View style={styles.innerContainer} />
       </Pressable>
     </View>
   );
@@ -30,6 +28,14 @@ const styles = StyleSheet.create({
     padding: 4,
     bottom: 16,
     alignSelf: "center",
+    boxShadow: [
+      {
+        offsetX: 0,
+        offsetY: 0,
+        blurRadius: 4,
+        color: "#00000044",
+      },
+    ],
   },
   pressable: {
     flex: 1,
@@ -38,5 +44,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     flex: 1,
     borderRadius: 100,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

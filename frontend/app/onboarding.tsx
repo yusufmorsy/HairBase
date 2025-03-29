@@ -4,7 +4,12 @@ import React from "react";
 import { View, Pressable, StyleSheet, Text } from "react-native";
 import PagerView from "react-native-pager-view";
 import Animated, { ReduceMotion, withTiming } from "react-native-reanimated";
-import { useAnimatedStyle, useSharedValue, Easing } from "react-native-reanimated";
+import {
+  useAnimatedStyle,
+  useSharedValue,
+  Easing,
+} from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // A simple multiple-choice component (single selection)
 const MultipleChoice = ({
@@ -122,7 +127,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <PagerView
         initialPage={0}
         style={styles.pagerView}
@@ -190,7 +195,7 @@ export default function OnboardingPage() {
       <View style={styles.barContainer}>
         <Animated.View style={[animatedWidth, styles.filledBar]} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
