@@ -21,8 +21,11 @@ if __name__ == "__main__":
 
         for i in range (0, 1):
             (prods[i].sku) 
+            if prods[i].textures == None:
+                continue;
             # database.insert_product(prods[i], conn)
-            database.insert_texture_pivot(prods[i].sku, prods[i].textures, conn)
+            # database.insert_texture_pivot(prods[i].sku, prods[i].textures, conn)
+            database.insert_concerns(prods[i].sku, prods[i].concerns, conn)
 
     
     conn.close()
