@@ -40,8 +40,6 @@ def insert_texture_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow])
             texture_id = cur.fetchone()
             if texture_id:
                 texture_id = texture_id[0]
-            
-            print(texture_id)
 
             cur.execute("""
                     INSERT INTO textures_to_products (product_id, texture_id)
@@ -49,6 +47,11 @@ def insert_texture_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow])
                 """, (sku, texture_id))
             
         conn.commit()
+
+def insert_type_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow]):
+
+    with conn.cursor() as cur:
+        pass
 
 
 
