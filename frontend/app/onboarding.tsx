@@ -1,3 +1,4 @@
+import Hero from "@/components/Hero";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React from "react";
@@ -127,7 +128,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <PagerView
         initialPage={0}
         style={styles.pagerView}
@@ -136,13 +137,14 @@ export default function OnboardingPage() {
           progress.value = position + offset;
         }}
       >
-        {/* Page 1: Hair Texture */}
+        {/* Welcome Page */}
         <View style={styles.page} key="1">
-          <View style={styles.hero}></View>
+          <Hero imageSource={require("@/assets/images/phone-hand.svg")} />
         </View>
 
         {/* Page 1: Hair Texture */}
         <View style={styles.page} key="2">
+          <Hero imageSource={require("@/assets/images/curly-hair.svg")} />
           <MultipleChoice
             question="What is your hair texture?"
             options={["Curly", "Wavy", "Straight", "Coily"]}
@@ -153,6 +155,7 @@ export default function OnboardingPage() {
 
         {/* Page 2: Hair Type */}
         <View style={styles.page} key="3">
+          <Hero imageSource={require("@/assets/images/haircut.svg")} />
           <MultipleChoice
             question="What is your hair type?"
             options={["Fine", "Medium", "Thick"]}
@@ -163,6 +166,7 @@ export default function OnboardingPage() {
 
         {/* Page 3: Ingredient Preferences */}
         <View style={styles.page} key="4">
+          <Hero imageSource={require("@/assets/images/hair-spray.svg")} />
           <Checklist
             question="What are your ingredient preferences?"
             options={[
@@ -179,6 +183,7 @@ export default function OnboardingPage() {
 
         {/* Page 4: Hair Concerns */}
         <View style={styles.page} key="5">
+          <Hero imageSource={require("@/assets/images/curly-hair.svg")} />
           <Checklist
             question="What concerns do you have?"
             options={[
@@ -197,10 +202,12 @@ export default function OnboardingPage() {
           </Pressable>
         </View>
       </PagerView>
-      <View style={styles.barContainer}>
-        <Animated.View style={[animatedWidth, styles.filledBar]} />
-      </View>
-    </SafeAreaView>
+      <SafeAreaView edges={["left", "bottom", "right"]}>
+        <View style={styles.barContainer}>
+          <Animated.View style={[animatedWidth, styles.filledBar]} />
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -208,19 +215,13 @@ const styles = StyleSheet.create({
   container: {
     position: "absolute",
     inset: 0,
-    padding: 16,
+    backgroundColor: "#fff",
   },
   pagerView: {
     flex: 1,
   },
   page: {
     flex: 1,
-  },
-  hero: {
-    height: 900,
-    width: "100%",
-    backgroundColor: "#a7cee2",
-    linear
   },
   questionContainer: {
     width: "100%",
