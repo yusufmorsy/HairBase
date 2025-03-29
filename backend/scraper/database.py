@@ -19,10 +19,13 @@ def connect_to_db(key: str) -> Connection[TupleRow]:
     return conn
 
 def insert_product(product: Product, conn: Connection[TupleRow]):
-    # print(product.__dict__.values())
     with conn.cursor() as cur:
-        cur.execute("INSERT INTO products (product_id, product_sku, product_name, brand_name, image_url, rating_cnt, avg_rating) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    (product.sku, product.sku, product.name, product.brand, str(product.img), product.rating_cnt, str(product.avg_rating)))
+        try:
+            cur.execute("INSERT INTO products (product_id, product_sku, product_name, brand_name, image_url, rating_cnt, avg_rating) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                        (product.sku, product.sku, product.name, product.brand, str(product.img), product.rating_cnt, str(product.avg_rating)))
+        except psycopg.errors.UniqueViolation:
+            raise psycopg.errors.UniqueViolation
+
         conn.commit()
 
 
@@ -105,6 +108,44 @@ def insert_ingredients(sku: str, attrs: List[str], conn: Connection[TupleRow]):
 
         conn.commit()
         print("inserted type pivots for sku:", sku)
+
+def insert_concerns(sku: str, attrs: List[str], conn: Connection[TupleRow]):
+    # check to see if ingredient is already in DB
+    with conn.cursor() as cur:
+        for i in attrs:
+            cur.execute("""
+                SELECT * 
+                FROM concerns
+                WHERE name = %s
+            """, (i,))
+
+            v = cur.fetchone()
+            if not v:
+                #if value is not in the table, insert it
+                print("value not found, inserting...")
+                cur.execute("""
+                    INSERT INTO concerns (name) VALUES (%s)
+                """, (i,))
+
+            # query again no matter what to get the ID
+            cur.execute("""
+                SELECT * 
+                FROM concerns
+                WHERE name = %s
+            """, (i,))
+
+            # we already know the id has to exist
+            concern_id = cur.fetchone()
+            concern_id = concern_id[0]
+
+            cur.execute("""
+                INSERT INTO concerns_to_products (product_id, concern_id)
+                VALUES (%s, %s)
+            """, (sku, concern_id))
+
+        conn.commit()
+        print("inserted type pivots for sku:", sku)
+
 
 
 def insert_one(item: str, table: str, conn: Connection[TupleRow]):
