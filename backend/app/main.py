@@ -76,5 +76,5 @@ async def groq_api_call(request: ImageRequest):
 
 @app.get("/search")
 def product_search(query: str):
-    conn.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', ?)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', ?);""", (query, query))
+    conn.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s);""", (query, query))
     return conn.fetchall()
