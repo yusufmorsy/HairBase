@@ -13,9 +13,11 @@ def parseRegex(text: str):
     benefits_pattern = r"Key Benefits: -([^\-]+(?:\- [^\-]+)*)"
     textures = re.findall(texture_pattern, text)
     types = re.findall(type_pattern, text)
-    concerns = re.findall(benefits_pattern, text)
+    benefits = re.findall(benefits_pattern, text)
 
-    print (concerns)
+    if len(benefits) == 0:
+        return "", ""
+
 
     if len(textures) == 0:
         return "", ""
@@ -24,7 +26,12 @@ def parseRegex(text: str):
     if len(types) == 0:
         return "", ""
     
-    
+    benefit_strip = benefits[0].split("Highlighted Ingredients:")[0]
+    key_benefit = [benefit.strip() for benefit in benefit_strip.split("-")]
+    for i in range(0, len(key_benefit)):
+        if "Formulation" in key_benefit[i]:
+            key_benefit[i] = key_benefit[i].split("Formulation")[0]
+    print(key_benefit)
 
     if not any(_ in textures[0] for _ in anyTexture):
         # print("Textures Match!")
