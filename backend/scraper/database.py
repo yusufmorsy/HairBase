@@ -30,7 +30,7 @@ def insert_product(product: Product, conn: Connection[TupleRow]):
 def insert_list_to_table(sku:str, attr_list:List[str], table: str, conn: Connection[TupleRow]):
 
     for item in attr_list:
-        
+        ...
     pass
 
 

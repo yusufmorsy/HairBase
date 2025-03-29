@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from fastapi import FastAPI, HTTPException
 import os
 from groq import Groq
@@ -59,24 +60,20 @@ async def groq_api_call(request: ImageRequest):
     
     # Needs settings here
     
-
+def connect_to_db():
+    p = urlparse(os.getenv("PSQL_DB"))
+    pg_connection_dict = {
+        'dbname': p.path[1:],
+        'user': p.username,
+        'password': p.password,
+        'port': p.port,
+        'host': p.hostname
+    }
+    
+    return psycopg.connect(**pg_connection_dict)
 
 @app.get("/search")
 def product_search(query: str):
-    conn = psycopg.Connection.connect(row_factory=dict_row)
-    conn.execute("""
-                SELECT
-                    products.id,
-                    products.name,
-                    brands.id,
-                    brands.name,
-                    to_tsvector(products.title || ' ' || products.name || ' ' || brands.name ) AS vector,
-                    plainto_tsquery(?) AS query
-                    ts_rank(vector, query) AS rank,
-                FROM
-                    products INNER JOIN brands 
-                        ON products.brand_id = brands.id
-                WHERE vector @@ query
-            """, query)
-    
+    conn = connect_to_db()
+    conn.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', 'spray')) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', 'spray');""", query)
     return conn.fetchall()
