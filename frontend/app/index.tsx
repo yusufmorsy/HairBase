@@ -1,7 +1,7 @@
 import ScannerLink from "@/components/ScannerLink";
 import SearchBar from "@/components/SearchBar";
-import Feather from "@expo/vector-icons/Feather";
-import { Link, Stack } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Link, router, Stack } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
@@ -19,6 +19,14 @@ export default function Index() {
         contentContainerStyle={{ padding: 16 }}
       >
         <SearchBar />
+        <Pressable
+          onPress={async () => {
+            await AsyncStorage.clear();
+            router.replace("/onboarding");
+          }}
+        >
+          <Text>Clear Local Storage</Text>
+        </Pressable>
       </ScrollView>
     </>
   );
