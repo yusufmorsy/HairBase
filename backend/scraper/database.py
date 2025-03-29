@@ -27,11 +27,29 @@ def insert_product(product: Product, conn: Connection[TupleRow]):
 
 
 #ex: for inserting into the pivot tables
-def insert_list_to_table(sku:str, attr_list:List[str], table: str, conn: Connection[TupleRow]):
+def insert_texture_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow]):
+    with conn.cursor() as cur:
 
-    for item in attr_list:
-        
-    pass
+        for i in attrs:
+            cur.execute("""
+                SELECT id
+                FROM textures
+                WHERE name = %s
+            """, (i,))
+
+            texture_id = cur.fetchone()
+            if texture_id:
+                texture_id = texture_id[0]
+            
+            print(texture_id)
+
+            cur.execute("""
+                    INSERT INTO textures_to_products (product_id, texture_id)
+                    VALUES (%s, %s)
+                """, (sku, texture_id))
+            
+        conn.commit()
+
 
 
 def insert_one(item: str, table: str, conn: Connection[TupleRow]):
