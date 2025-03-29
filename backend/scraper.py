@@ -2,6 +2,7 @@ import requests
 import json
 import re
 
+# Returns texture, type, benefits
 def parseRegex(text: str):
 
     anyTexture = ["Straight", "Wavy", "Curly", "Coily"]
@@ -9,8 +10,15 @@ def parseRegex(text: str):
 
     texture_pattern = r"Hair Texture:\s*([A-Za-z, and]+)"
     type_pattern = r"Hair Type:\s*([A-Za-z, and]+)"
+    benefits_pattern = r"Key Benefits: -([^\-]+(?:\- [^\-]+)*)"
     textures = re.findall(texture_pattern, text)
     types = re.findall(type_pattern, text)
+    benefits = re.findall(benefits_pattern, text)
+
+    if len(benefits) == 0:
+        return "", ""
+
+
     if len(textures) == 0:
         return "", ""
 
@@ -18,6 +26,12 @@ def parseRegex(text: str):
     if len(types) == 0:
         return "", ""
     
+    benefit_strip = benefits[0].split("Highlighted Ingredients:")[0]
+    key_benefit = [benefit.strip() for benefit in benefit_strip.split("-")]
+    for i in range(0, len(key_benefit)):
+        if "Formulation" in key_benefit[i]:
+            key_benefit[i] = key_benefit[i].split("Formulation")[0]
+    print(key_benefit)
 
     if not any(_ in textures[0] for _ in anyTexture):
         # print("Textures Match!")
@@ -28,6 +42,11 @@ def parseRegex(text: str):
     # print("Target Textures:", textures[0].split("Hair")[0])
     # print("Target Types:", types[0].split("Hair")[0])
     return textures[0].split("Hair")[0], types[0].split("Hair")[0]
+
+def normalizeText(text: str) -> str:
+    t = text.replace(" - ", " -")
+    t = text.replace("&nbsp;", " ")
+    return t
 
 headers = {
     'Host': 'sephora.cnstrc.com',
@@ -61,10 +80,7 @@ response = requests.get('https://sephora.cnstrc.com/browse/group_id/cat130038', 
 #in case the reproduced version is not "correct".
 # response = requests.get('https://sephora.cnstrc.com/browse/v1/pods/ymal-test?c=ciojs-client-2.62.2&key=u7PNVQx-prod-en-us&i=bba62100-82f5-4901-bc87-dce7c8eee364&s=2&item_id=P412087&variations_map=%7B%22values%22%3A%7B%22network_status%22%3A%7B%22aggregation%22%3A%22max%22%2C%22field%22%3A%22data.sku_availability.network_SEPHORAUS%22%7D%2C%22store_status%22%3A%7B%22aggregation%22%3A%22max%22%2C%22field%22%3A%22data.sku_availability.store_123%22%7D%2C%22sku_count%22%3A%7B%22aggregation%22%3A%22count%22%7D%2C%22sale_count%22%3A%7B%22aggregation%22%3A%22value_count%22%2C%22field%22%3A%22data.facets.on_sale%22%2C%22value%22%3Atrue%7D%2C%22min_list_price%22%3A%7B%22aggregation%22%3A%22min%22%2C%22field%22%3A%22data.currentSku.listPriceFloat%22%7D%2C%22max_list_price%22%3A%7B%22aggregation%22%3A%22max%22%2C%22field%22%3A%22data.currentSku.listPriceFloat%22%7D%2C%22min_sale_price%22%3A%7B%22aggregation%22%3A%22min%22%2C%22field%22%3A%22data.currentSku.salePriceFloat%22%7D%2C%22max_sale_price%22%3A%7B%22aggregation%22%3A%22max%22%2C%22field%22%3A%22data.currentSku.salePriceFloat%22%7D%2C%22min_price%22%3A%7B%22aggregation%22%3A%22min%22%2C%22field%22%3A%22data.currentSku.finalPriceFloat%22%7D%2C%22max_price%22%3A%7B%22aggregation%22%3A%22max%22%2C%22field%22%3A%22data.facets.finalPriceFloat%22%7D%2C%22moreColors%22%3A%7B%22aggregation%22%3A%22all%22%2C%22field%22%3A%22data.currentSku.colorName%22%7D%7D%2C%22dtype%22%3A%22object%22%7D', headers=headers)
 
-# print()
 resp = response.json()
-
-# print(len(resp["response"]["results"]))
 results = resp["response"]["results"]
 
 for item in results:
@@ -83,8 +99,8 @@ for item in results:
     print(f'Total Reviews: {item["data"]["totalReviews"]}')
 
     extDesc = item["data"]["extended_description"]
-
-    textures, types = parseRegex(extDesc)
+    cleanText = normalizeText(extDesc)
+    textures, types = parseRegex(cleanText)
     if (textures == ""):
         textures = "N/A"
     
