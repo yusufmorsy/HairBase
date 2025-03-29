@@ -2,6 +2,8 @@ import dotenv
 import os
 dotenv.load_dotenv()
 import database
+import scraper
+
 
 if __name__ == "__main__":
 
@@ -10,7 +12,15 @@ if __name__ == "__main__":
 
     conn = database.connect_to_db(db_key)
 
-    
 
+    cat = "cat130038"
+    page_cnt = scraper.getPageCount(cat)
+
+    for i in range (1, page_cnt):
+        prods = scraper.getPagefromCat(i, cat)
+
+        for i in range (0, 20):
+            print(prods[i].sku)
+    
     conn.close()
     
