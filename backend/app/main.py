@@ -13,7 +13,6 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 POSTGRES_URL = os.getenv("POSTGRES_URL")
 
-
 if GROQ_API_KEY is None:
     raise ValueError("Api key not set")
 
@@ -25,6 +24,20 @@ class ImageRequest(BaseModel):
 
 client = Groq(api_key=GROQ_API_KEY)
 
+def connect_to_db():
+
+    p = urlparse(POSTGRES_URL)
+    pg_connection_dict = {
+        'dbname': p.path[1:],
+        'user': p.username,
+        'password': p.password,
+        'port': p.port,
+        'host': p.hostname
+    }
+    
+    return psycopg.connect(**pg_connection_dict)
+
+conn = connect_to_db()
 
 #prompt
 @app.post("/groq-ocr")
@@ -60,20 +73,8 @@ async def groq_api_call(request: ImageRequest):
     
     # Needs settings here
     
-def connect_to_db():
-    p = urlparse(os.getenv("PSQL_DB"))
-    pg_connection_dict = {
-        'dbname': p.path[1:],
-        'user': p.username,
-        'password': p.password,
-        'port': p.port,
-        'host': p.hostname
-    }
-    
-    return psycopg.connect(**pg_connection_dict)
 
 @app.get("/search")
 def product_search(query: str):
-    conn = connect_to_db()
-    conn.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', ?)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', ?); """, [query])
+    conn.execute("""SELECT product_id, product_name, brand_name, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', ?)) FROM products WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', ?); """, (query,))
     return conn.fetchall()
