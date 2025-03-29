@@ -22,9 +22,8 @@ export default function RootLayout() {
           navigationBarTranslucent: true,
         }}
       >
-        <Stack.Screen name="index" options={{ title: "Home" }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="scan" options={{ title: "Scan Product" }} />
       </Stack>
       <StatusBar style="dark" />
     </>
