@@ -1,17 +1,11 @@
-FROM python:3.9-slim
+FROM python:3.9
 
-# Set a working directory
-WORKDIR /app
+WORKDIR /code
 
-# Copy requirements and install
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./requirements.txt /code/requirements.txt
 
-# Copy the rest of the backend code
-COPY . .
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# Expose FastAPI port
-EXPOSE 8000
+COPY ./app /code/app
 
-# Start FastAPI server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["fastapi", "run", "main-groq.py", "--port", "80"]
