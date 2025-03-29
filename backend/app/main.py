@@ -27,6 +27,11 @@ client = Groq(api_key=GROQ_API_KEY)
 #prompt
 @app.post("/groq-ocr")
 async def groq_api_call(request: ImageRequest):
+    return {
+        "product_name": "Lavender Shampoo",
+        "brand_name": "Dove",
+        "product_type": "shampoo"
+    }
     try:
         chat_completion = client.chat.completions.create(
             messages=[
