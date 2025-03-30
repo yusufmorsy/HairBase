@@ -1,22 +1,27 @@
 import { Product } from "@/types/Product";
 import { Image } from "expo-image";
+import { Link } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
 
 type Props = {
   product: Product;
 };
 
 export default function ProductTile({ product }: Props) {
-  console.log(product);
-
   return (
-    <View style={styles.outerContainer}>
-      <Image style={styles.picture} source={product.image_url} />
-      <View style={styles.textContainer}>
-        <Text style={styles.productName}>{product.product_name}</Text>
-        <Text style={styles.brandName}>{product.brand_name}</Text>
+    <Link
+      href={`/products/${product.product_id}`}
+      onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+    >
+      <View style={styles.outerContainer}>
+        <Image style={styles.picture} source={product.image_url} />
+        <View style={styles.textContainer}>
+          <Text style={styles.productName}>{product.product_name}</Text>
+          <Text style={styles.brandName}>{product.brand_name}</Text>
+        </View>
       </View>
-    </View>
+    </Link>
   );
 }
 

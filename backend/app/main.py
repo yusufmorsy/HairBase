@@ -46,18 +46,28 @@ def best_search_query(query_list: list[str], qLen: int):
     for i in range (1, bRep):
         curr_query_list = []
 
+        best_len = 999999
+        best_q = []
+
         # create list of items to be included in the queue based off of the binary repesentation
         bnrStr = bin(i)[2:].zfill(qLen)
         for idx in range (0, qLen):
             if bnrStr[idx] == '1':
                 curr_query_list.append(query_list[idx])
 
+        if len(curr_query_list) == 1:
+            continue
+
         r = search_db(" ".join(curr_query_list))
         if r == None:
             continue
-        if len(r) < 5:
-            for i in r:
-                print(i["brand_name"] + " " + i["product_name"])
+
+        if len(r) < best_len:
+            best_len = len(r)
+            best_q = r
+        
+
+        return best_q
 
 #prompt
 @app.post("/groq-ocr")
@@ -124,19 +134,19 @@ async def groq_api_call(request: ImageRequest):
     generated_search_query = chat_completion.choices[0].message.content
 
     q = json.loads(generated_search_query)
-    
     query_list = q["found_text"].split(" ")
-    for i in range(0, len(query_list)):
-        q = search_db(" ".join(query_list))
-        print("q:", q)
-        if q == None:
-            query_list = query_list[:-1]
-        else:
-            return q
+    return best_search_query(query_list, len(query_list))
+    # for i in range(0, len(query_list)):
+    #     q = search_db(" ".join(query_list))
+    #     print("q:", q)
+    #     if q == None:
+    #         query_list = query_list[:-1]
+    #     else:
+    #         return q
         
-    best_search_query(query_list, len(query_list))
 
-    return search_db(q["found_text"])
+
+    # return search_db(q["found_text"])
 
 def search_db(query: str):
     print(f"incoming search query: {query}")

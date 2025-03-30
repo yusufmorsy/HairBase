@@ -2,6 +2,7 @@ import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect } from "react";
+import { ProductContext } from "@/providers/ProductContext";
 
 export default function RootLayout() {
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function RootLayout() {
     checkOnboardingStatus();
   }, []);
 
-  AsyncStorage.getAllKeys().then(console.log)
+  AsyncStorage.getAllKeys().then(console.log);
 
   return (
     <>
@@ -27,6 +28,10 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "Results" }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="manualfill" options={{ headerShown: true, title: "Manual Fill" }} />
+        <Stack.Screen
+            name="products"
+            options={{ title: "Product Information" }}
+          />
       </Stack>
       <StatusBar style="dark" />
     </>

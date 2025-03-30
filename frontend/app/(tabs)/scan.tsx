@@ -71,14 +71,13 @@ export default function ScanScreen() {
   };
 
   // Adjust snapPoints: when no products are found, raise the bottom sheet higher (e.g. 400)
-  const snapPoints =
-    !products
-      ? [350]
-      : products.length === 0
-      ? [300]
-      : products.length === 1
-      ? [350]
-      : [350, "80%"];
+  const snapPoints = !products
+    ? [350]
+    : products.length === 0
+    ? [300]
+    : products.length === 1
+    ? [350]
+    : [350, "80%"];
 
   return (
     <GestureHandlerRootView style={styles.container}>

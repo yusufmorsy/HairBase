@@ -1,7 +1,7 @@
 import ScannerLink from "@/components/ScannerLink";
 import SearchBar from "@/components/SearchBar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, Stack } from "expo-router";
+import { Link, router, Stack } from "expo-router";
 import { ScrollView, StyleSheet, Text, View, Image } from "react-native";
 import React, { useState, useEffect } from "react";
 
@@ -106,6 +106,7 @@ export default function Index() {
         {/* Header Section */}
         <View style={styles.headerSection}>
           <SearchBar />
+          <Link href="/products/2592863">Hello</Link>
         </View>
 
         {/* Debug: Render raw API response */}
