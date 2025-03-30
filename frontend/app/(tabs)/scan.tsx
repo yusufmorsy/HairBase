@@ -79,9 +79,9 @@ export default function ScanScreen() {
           ref={bottomSheetModalRef}
           snapPoints={
             !products
-              ? [5]
-              : products.length == 0
               ? [350]
+              : products.length == 0
+              ? [150]
               : products.length == 1
               ? [350]
               : [350, "80%"]
