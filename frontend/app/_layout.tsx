@@ -14,6 +14,8 @@ export default function RootLayout() {
     checkOnboardingStatus();
   }, []);
 
+  AsyncStorage.getAllKeys().then(console.log)
+
   return (
     <>
       <Stack
