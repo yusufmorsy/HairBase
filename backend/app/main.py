@@ -121,10 +121,10 @@ def search_db(query: str):
 def product_search(query: str):
 
     query_list = query.split(" ")
-    for word in query_list:
+    for i in range(0, len(query_list)):
         q = search_db(query_list.join(" "))
         if q == None:
-            query_list.remove(word)
+            query_list = query_list[:-1]
         else:
             return q
     
