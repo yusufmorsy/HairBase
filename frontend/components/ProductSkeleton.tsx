@@ -32,6 +32,7 @@ export default function ProductSkeleton() {
       <Animated.View style={[styles.picturePlaceholder, pulsingStyle]} />
       <View style={styles.textContainer}>
         <Animated.View style={[styles.nameTextBar, pulsingStyle]} />
+        <Animated.View style={[styles.nameTextBar, pulsingStyle]} />
         <Animated.View style={[styles.brandTextBar, pulsingStyle]} />
       </View>
     </View>
@@ -40,31 +41,27 @@ export default function ProductSkeleton() {
 
 const styles = StyleSheet.create({
   outerContainer: {
-    flexDirection: "row",
     gap: 16,
   },
   picturePlaceholder: {
-    height: 64,
-    width: 64,
+    height: 200,
     backgroundColor: "#c1c1c1",
     borderRadius: 8,
   },
   textContainer: {
     alignItems: "flex-start",
     gap: 8,
-    flex: 1,
-    paddingBottom: 16,
   },
   nameTextBar: {
     backgroundColor: "#c1c1c1",
-    height: 18,
     borderRadius: 4,
     width: "100%",
+    height: 18,
   },
   brandTextBar: {
     backgroundColor: "#c1c1c1",
-    height: 18,
     borderRadius: 4,
     width: "50%",
+    height: 18,
   },
 });

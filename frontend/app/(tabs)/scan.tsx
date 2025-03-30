@@ -9,37 +9,18 @@ import {
   BottomSheetScrollView,
   BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
-import ProductSkeleton from "@/components/ProductSkeletonSmall";
+import ProductSkeleton from "@/components/ProductSkeleton";
 import { router } from "expo-router";
-
-type Product = {
-  brand_name: string;
-  product_name: string;
-  product_type: string;
-};
-
-function MatchedProductCard({ product }: { product: Product }) {
-  return (
-    <View style={styles.card}>
-      <Image
-        source={{ uri: "https://via.placeholder.com/300x200" }}
-        style={styles.productImage}
-      />
-      <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.productName}>{product.product_name}</Text>
-          <Text style={styles.productBrand}>{product.brand_name}</Text>
-        </View>
-        <Text style={styles.rating}>⭐ 4.5</Text>
-      </View>
-      <Text style={styles.hairTexture}>Category: {product.product_type}</Text>
-    </View>
-  );
-}
+import ProductSkeletonSmall from "@/components/ProductSkeletonSmall";
+import OrDivider from "@/components/OrDivider";
+import { Product } from "@/types/Product";
+import ProductTile from "@/components/ProductTile";
+import ProductTileSmall from "@/components/ProductTileSmall";
+import SadCat from "@/components/SadCat";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
-  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [products, setProducts] = useState<Product[] | undefined>(undefined);
   const cameraViewRef = useRef<CameraView>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -59,10 +40,9 @@ export default function ScanScreen() {
   }
 
   const takePicture = async () => {
-    setProduct(undefined);
+    setProducts(undefined);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
-    // Present the bottom sheet modal at 60%
     bottomSheetModalRef.current?.present();
 
     const picture = await cameraViewRef?.current?.takePictureAsync({
@@ -70,7 +50,7 @@ export default function ScanScreen() {
       quality: 0.25,
     });
 
-    const product: Product = await (
+    const ps: Product[] = await (
       await fetch("https://blasterhacks.lenixsavesthe.world/groq-ocr", {
         method: "POST",
         headers: {
@@ -80,7 +60,9 @@ export default function ScanScreen() {
       })
     ).json();
 
-    setProduct(product);
+    console.log(ps);
+
+    setProducts(ps || []);
   };
 
   return (
@@ -95,7 +77,15 @@ export default function ScanScreen() {
         </CameraView>
         <BottomSheetModal
           ref={bottomSheetModalRef}
-          snapPoints={["60%"]}
+          snapPoints={
+            !products
+              ? [5]
+              : products.length == 0
+              ? [350]
+              : products.length == 1
+              ? [350]
+              : [350, "80%"]
+          }
           enableDynamicSizing={false}
           enablePanDownToClose={true}
           enableHandlePanningGesture={true}
@@ -104,28 +94,25 @@ export default function ScanScreen() {
           <BottomSheetScrollView
             contentContainerStyle={styles.modalContentContainer}
           >
-            {product ? (
-              <>
-                <MatchedProductCard product={product} />
-                <View style={styles.buttonRow}>
-                  <Pressable
-                    style={[styles.button, styles.correctButton]}
-                    onPress={() => {
-                      router.replace("/");
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Correct Product</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.button, styles.incorrectButton]}
-                    onPress={() => {
-                      router.replace("/manualfill");
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Incorrect</Text>
-                  </Pressable>
+            {products ? (
+              products.length ? (
+                <View style={styles.spacedContainer}>
+                  <ProductTile product={products[0]} />
+                  {products.length > 1 && (
+                    <View style={styles.spacedContainer}>
+                      <OrDivider />
+                      {products.slice(1).map((product) => (
+                        <ProductTileSmall
+                          product={product}
+                          key={product.product_id}
+                        />
+                      ))}
+                    </View>
+                  )}
                 </View>
-              </>
+              ) : (
+                <SadCat />
+              )
             ) : (
               <View style={styles.loadingContainer}>
                 <ProductSkeleton />
@@ -152,10 +139,6 @@ const styles = StyleSheet.create({
   },
   modalContentContainer: {
     padding: 24,
-  },
-  loadingContainer: {
-    alignItems: "center",
-    justifyContent: "center",
   },
   card: {
     borderWidth: 1,
@@ -214,5 +197,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    gap: 16,
+  },
+  spacedContainer: {
+    gap: 16,
   },
 });

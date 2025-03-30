@@ -1,8 +1,10 @@
-// Edit this so it matches the database, when the database is ready
-
 export type Product = {
-  id: number,
-  name: string,
-  brand: string,
-  imageUrl?: string,
+  product_id: number;
+  product_name: string;
+  brand_name: string;
+  image_url?: string;
+  concerns?: string[];
+  ingredients?: string[];
+  textures?: string[];
+  types?: string[];
 }

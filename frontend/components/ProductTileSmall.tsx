@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import LikeButton from "./LikeButton";
 import { Link } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 
 type Props = {
   product: Product;
@@ -12,17 +13,14 @@ type Props = {
 export default function ProductTile({ product }: Props) {
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/products/${product.product_id}`}
       onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
     >
       <View style={styles.outerContainer}>
-        <View style={styles.imagePlaceholder} />
+        <Image style={styles.picture} source={product.image_url} />
         <View style={styles.textContainer}>
-          <Text style={styles.productName}>{product.name}</Text>
-          <Text style={styles.brandName}>{product.brand}</Text>
-        </View>
-        <View>
-          <LikeButton count={16} />
+          <Text style={styles.productName}>{product.product_name}</Text>
+          <Text style={styles.brandName}>{product.brand_name}</Text>
         </View>
       </View>
     </Link>
@@ -34,7 +32,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
   },
-  imagePlaceholder: {
+  picture: {
     height: 64,
     width: 64,
     backgroundColor: "#c1c1c1",
@@ -46,11 +44,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   productName: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "bold",
   },
   brandName: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#858585",
   },
 });
