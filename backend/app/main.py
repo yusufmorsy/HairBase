@@ -104,6 +104,15 @@ async def groq_api_call(request: ImageRequest):
     generated_search_query = chat_completion.choices[0].message.content
 
     q = json.loads(generated_search_query)
+    
+    query_list = q["found_text"].split(" ")
+    for i in range(0, len(query_list)):
+        q = search_db(" ".join(query_list))
+        print("q:", q)
+        if q == None:
+            query_list = query_list[:-1]
+        else:
+            return q
 
     return search_db(q["found_text"])
 
@@ -149,18 +158,10 @@ def search_db(query: str):
                 WHERE to_tsvector(unaccent(product_name) || ' ' || unaccent(brand_name)) @@ websearch_to_tsquery('english', unaccent(%s))
                 LIMIT 20;
                 """, (query, query))
+        
         return cur.fetchone()[0]  # Get the JSON array result
         
 @app.get("/search")
 def product_search(query: str):
 
-    query_list = query.split(" ")
-    for i in range(0, len(query_list)):
-        q = search_db(" ".join(query_list))
-        print("q:", q)
-        if q == None:
-            query_list = query_list[:-1]
-        else:
-            return q
-    
     return search_db(query)
