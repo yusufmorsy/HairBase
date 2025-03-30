@@ -139,7 +139,7 @@ export default function ScanScreen() {
                 <SadCat />
                 <Pressable
                   style={styles.noMatchButton}
-                  onPress={() => router.push("/form")}
+                  onPress={() => router.push("../form")}
                 >
                   <Text style={styles.noMatchButtonText}>No Match</Text>
                 </Pressable>
