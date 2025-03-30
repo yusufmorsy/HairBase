@@ -39,6 +39,26 @@ def connect_to_db():
 
 conn = connect_to_db()
 
+def best_search_query(query_list: list[str], qLen: int):
+
+    bRep = 2**qLen
+
+    for i in range (1, bRep):
+        curr_query_list = []
+
+        # create list of items to be included in the queue based off of the binary repesentation
+        bnrStr = bin(i)[2:].zfill(qLen)
+        for idx in range (0, qLen):
+            if bnrStr[idx] == '1':
+                curr_query_list.append(query_list[idx])
+
+        r = search_db(" ".join(curr_query_list))
+        if r == None:
+            continue
+        if len(r) < 5:
+            for i in r:
+                print(i["brand_name"] + " " + i["product_name"])
+
 #prompt
 @app.post("/groq-ocr")
 async def groq_api_call(request: ImageRequest):
@@ -104,6 +124,17 @@ async def groq_api_call(request: ImageRequest):
     generated_search_query = chat_completion.choices[0].message.content
 
     q = json.loads(generated_search_query)
+    
+    query_list = q["found_text"].split(" ")
+    for i in range(0, len(query_list)):
+        q = search_db(" ".join(query_list))
+        print("q:", q)
+        if q == None:
+            query_list = query_list[:-1]
+        else:
+            return q
+        
+    best_search_query(query_list, len(query_list))
 
     return search_db(q["found_text"])
 
@@ -149,18 +180,84 @@ def search_db(query: str):
                 WHERE to_tsvector(unaccent(product_name) || ' ' || unaccent(brand_name)) @@ websearch_to_tsquery('english', unaccent(%s))
                 LIMIT 20;
                 """, (query, query))
+        
         return cur.fetchone()[0]  # Get the JSON array result
         
 @app.get("/search")
 def product_search(query: str):
 
-    query_list = query.split(" ")
-    for i in range(0, len(query_list)):
-        q = search_db(" ".join(query_list))
-        print("q:", q)
-        if q == None:
-            query_list = query_list[:-1]
-        else:
-            return q
-    
     return search_db(query)
+
+<<<<<<< HEAD
+@app.get("/show_product")
+def show_product(product_id: int):      
+    with conn.cursor() as cur:
+        cur.execute("""
+                SELECT 
+                    json_agg(
+                        json_build_object(
+                            'product_id', products.product_id,
+                            'product_name', product_name,
+                            'brand_name', brand_name,
+                            'image_url', image_url,
+                            'concerns', (
+                                SELECT json_agg(concerns.name) 
+                                FROM concerns_to_products 
+                                JOIN concerns ON concerns.id = concerns_to_products.concern_id
+                                WHERE concerns_to_products.product_id = products.product_id
+                            ),
+                            'ingredients', (
+                                SELECT json_agg(ingredients.name)
+                                FROM ingredient_to_products
+                                JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
+                                WHERE ingredient_to_products.product_id = products.product_id
+                            ),
+                            'textures', (
+                                SELECT json_agg(textures.name)
+                                FROM textures_to_products
+                                JOIN textures ON textures.id = textures_to_products.texture_id
+                                WHERE textures_to_products.product_id = products.product_id
+                            ),
+                            'types', (
+                                SELECT json_agg(types.name)
+                                FROM types_to_products
+                                JOIN types ON types.id = types_to_products.type_id
+                                WHERE types_to_products.product_id = products.product_id
+                            )
+                        )
+                    ) as json_result
+                FROM products
+                WHERE product_id = %s;
+                """, (product_id,))
+        return cur.fetchone()[0][0]  # Get the JSON array result
+
+@app.get("/groq_concerns")
+def groq_concerns(query: str):
+    
+    return {
+        "name": "Product name",
+        "brand": "Brand name",
+        "textures": [
+            "straight",
+            "wavy",
+            "curly",
+            "coily"
+        ],
+        "types": [
+            "fine",
+            "medium",
+            "thick",
+        ],
+        "concerns": [
+            "dryness"
+        ],
+        "ingredients": [
+            "vegan",
+        ]
+    }
+=======
+
+# def search_best_query(query: list[str]):
+
+    
+>>>>>>> a2724bb (updated search)
