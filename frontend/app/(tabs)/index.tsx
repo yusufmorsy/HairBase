@@ -30,7 +30,7 @@ const ProductCard = ({ product }: { product: Product }) => {
   const handleCardPress = () => {
     // Navigate using the allowed route with matching param name.
     router.push({
-      pathname: '/products/[productId]',
+      pathname: "/products/[productId]",
       params: { productId: product.id },
     });
   };
@@ -72,13 +72,18 @@ const ProductCard = ({ product }: { product: Product }) => {
 };
 
 export default function Index() {
+  // Store the current search query; default is "shampoo"
+  const [query, setQuery] = useState("shampoo");
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
+        console.log("Fetching products for query:", query);
         const res = await fetch(
-          "https://blasterhacks.lenixsavesthe.world/search?query=shampoo"
+          `https://blasterhacks.lenixsavesthe.world/search?query=${encodeURIComponent(
+            query
+          )}`
         );
         const data = await res.json();
 
@@ -115,7 +120,7 @@ export default function Index() {
         console.error("Fetch error:", error);
       }
     })();
-  }, []);
+  }, [query]);
 
   return (
     <>
@@ -127,21 +132,13 @@ export default function Index() {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 60 }}>
         {/* Header Section */}
         <View style={styles.headerSection}>
-          <SearchBar />
+          <SearchBar onSearch={setQuery} />
         </View>
 
         {/* Products Section */}
         <View style={styles.productsContainer}>
           {products.length === 0 ? (
-            <Text
-              style={{
-                fontSize: 16,
-                textAlign: "center",
-                marginTop: 20,
-              }}
-            >
-              No products found.
-            </Text>
+            <Text style={styles.noProductsText}>No products found.</Text>
           ) : (
             products.map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -158,6 +155,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   productsContainer: {
+    marginTop: 20,
+  },
+  noProductsText: {
+    fontSize: 16,
+    textAlign: "center",
     marginTop: 20,
   },
   card: {
