@@ -124,7 +124,10 @@ export default function Index() {
 
   return (
     <>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 60 }}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.contentContainer}
+      >
         {/* Header Section */}
         <View style={styles.headerSection}>
           <SearchBar onSearch={setQuery} />
@@ -146,6 +149,13 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: "#FFFFFF", // White background for the whole page.
+  },
+  contentContainer: {
+    padding: 60,
+  },
   headerSection: {
     marginBottom: 16,
   },

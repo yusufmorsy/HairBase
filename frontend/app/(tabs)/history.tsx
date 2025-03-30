@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, router } from "expo-router";
-import { Product } from "@/types/Product";
+// Removed incorrect import for IProduct from "@/types/Product"
 
 interface IProduct {
   id: number;
@@ -27,28 +27,45 @@ interface IProduct {
 const ProductCard = ({ product }: { product: IProduct }) => {
   const [expanded, setExpanded] = useState(false);
 
+  // Navigate to the product detail page using the dynamic route.
+  const handleCardPress = () => {
+    router.push({
+      pathname: "/products/[productId]",
+      params: { productId: product.id.toString() },
+    });
+  };
+
   return (
     <View style={styles.card}>
-      <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
-      <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.productName}>{product.name}</Text>
-          <Text style={styles.productBrand}>{product.brand}</Text>
+      {/* Pressable area for all content except the "Show More" button */}
+      <Pressable onPress={handleCardPress} style={styles.cardContent}>
+        <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={styles.productName}>{product.name}</Text>
+            <Text style={styles.productBrand}>{product.brand}</Text>
+          </View>
         </View>
-      </View>
-      <Text style={styles.hairTexture}>Ideal for: {product.hairTexture}</Text>
-      <Pressable onPress={() => setExpanded(!expanded)}>
+        <Text style={styles.hairTexture}>Ideal for: {product.hairTexture}</Text>
+        {expanded && (
+          <View style={styles.expandedContent}>
+            <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
+            <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
+          </View>
+        )}
+      </Pressable>
+      {/* Show More / Show Less button */}
+      <Pressable
+        onPress={(e) => {
+          e.stopPropagation(); // Prevent the card press action
+          setExpanded(!expanded);
+        }}
+        style={styles.expandButton}
+      >
         <Text style={styles.expandText}>
           {expanded ? "Show Less" : "Show More"}
         </Text>
       </Pressable>
-      {expanded && (
-        <View style={styles.expandedContent}>
-          {/* <Text style={styles.detailText}>Benefits: {product.benefits}</Text> */}
-          <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
-          <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
-        </View>
-      )}
     </View>
   );
 };
@@ -61,34 +78,24 @@ export default function History() {
   useEffect(() => {
     async function loadHistory() {
       try {
-        // Retrieve the scanned product IDs from AsyncStorage.
-        const savedProds: string = (await AsyncStorage.getItem("product-history")) || "";
-        const parsedProds: Product[] = JSON.parse(savedProds) as Product[]
+        const savedProds: string =
+          (await AsyncStorage.getItem("product-history")) || "";
+        const parsedProds = JSON.parse(savedProds);
 
-        // let scannedIds: string[] = [];
-        // if (storedHistory !== null) {
-        //   scannedIds = JSON.parse(storedHistory);
-        // }
+        // Map each stored product to our IProduct type.
+        const fetchedProducts: IProduct[] = parsedProds.map((product: any) => ({
+          id: product.product_id,
+          name: product.product_name || "Unknown Product",
+          brand: product.brand_name || "N/A",
+          rating: product.avg_rating || 0,
+          hairTexture: product.textures || "N/A",
+          imageUrl: product.image_url || "https://via.placeholder.com/200",
+          concerns: product.concerns || "N/A",
+          hairTypes: product.types || "N/A",
+        }));
 
-
-
-        // For each scanned product id, call the search API.
-        const fetchPromises = parsedProds.map((product) => {
-            return {
-              id: product.product_id,
-              name: product.product_name || "Unknown Product",
-              brand: product.brand_name || "N/A",
-              rating: 0 || 0,
-              hairTexture: product.textures || "N/A",
-              imageUrl: product.image_url || "https://via.placeholder.com/200",
-              concerns: product.concerns || "N/A",
-              hairTypes: product.types || "N/A",
-            } as IProduct;
-        });
-
-        const fetchedProducts = await Promise.all(fetchPromises);
         setHistoryProducts(fetchedProducts);
-        // Count the ones that are "Unknown Product" (i.e. not found in the database).
+        // Count the ones that are "Unknown Product"
         const addedCount = fetchedProducts.filter(
           (p) => p.name === "Unknown Product"
         ).length;
@@ -133,7 +140,10 @@ export default function History() {
             <Text style={styles.empty}>No scans yet</Text>
           ) : (
             historyProducts.map((product, index) => (
-              <ProductCard key={product.id || index.toString()} product={product} />
+              <ProductCard
+                key={product.id || index.toString()}
+                product={product}
+              />
             ))
           )}
         </ScrollView>
@@ -177,6 +187,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: "#fff",
   },
+  cardContent: {
+    flex: 1,
+  },
   productImage: {
     width: "100%",
     height: 200,
@@ -196,19 +209,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "gray",
   },
-  rating: {
-    fontSize: 14,
-  },
   hairTexture: {
     fontSize: 14,
     paddingHorizontal: 8,
     marginBottom: 4,
   },
+  expandButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
   expandText: {
     fontSize: 14,
     color: "blue",
-    paddingHorizontal: 8,
-    marginBottom: 8,
   },
   expandedContent: {
     paddingHorizontal: 8,

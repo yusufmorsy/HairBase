@@ -34,11 +34,13 @@ export default function ScanScreen() {
 
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>
-          We need your permission to show the camera
-        </Text>
-        <Button onPress={requestPermission} title="grant permission" />
+      <View style={styles.outerContainer}>
+        <View style={styles.centeredContainer}>
+          <Text style={styles.message}>
+            We need your permission to show the camera
+          </Text>
+          <Button onPress={requestPermission} title="grant permission" />
+        </View>
       </View>
     );
   }
@@ -76,7 +78,6 @@ export default function ScanScreen() {
     setProducts(ps || []);
     console.log(ps);
 
-    // let savedProducts: Product[]
     const savedProds: string =
       (await AsyncStorage.getItem("product-history")) || "";
     const parsedProds: Product[] = JSON.parse(savedProds) as Product[];
@@ -89,7 +90,7 @@ export default function ScanScreen() {
     console.log("saved product history locally");
   };
 
-  // Adjust snapPoints: when no products are found, raise the bottom sheet higher (e.g. 400)
+  // Adjust snapPoints based on products count
   const snapPoints = !products
     ? [350]
     : products.length === 0
@@ -99,79 +100,99 @@ export default function ScanScreen() {
     : [350, "80%"];
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <BottomSheetModalProvider>
-        <CameraView
-          style={styles.camera}
-          ref={cameraViewRef}
-          animateShutter={false}
-        >
-          <ShutterButton onPress={takePicture} />
-        </CameraView>
-        <BottomSheetModal
-          ref={bottomSheetModalRef}
-          snapPoints={snapPoints}
-          enableDynamicSizing={false}
-          enablePanDownToClose={true}
-          enableHandlePanningGesture={true}
-          enableContentPanningGesture={false}
-        >
-          {products ? (
-            products.length > 0 ? (
+    <GestureHandlerRootView style={styles.outerContainer}>
+      <View style={styles.outerContainer}>
+        {/* Background container with light blue color */}
+        <BottomSheetModalProvider>
+          {/* Wrap CameraView in a container that has the background color */}
+          <View style={styles.cameraContainer}>
+            <CameraView
+              style={styles.camera}
+              ref={cameraViewRef}
+              animateShutter={false}
+            >
+              <ShutterButton onPress={takePicture} />
+            </CameraView>
+          </View>
+          <BottomSheetModal
+            ref={bottomSheetModalRef}
+            snapPoints={snapPoints}
+            enableDynamicSizing={false}
+            enablePanDownToClose={true}
+            enableHandlePanningGesture={true}
+            enableContentPanningGesture={false}
+          >
+            {products ? (
               <BottomSheetScrollView
                 contentContainerStyle={styles.modalContentContainer}
               >
-                <View style={styles.spacedContainer}>
-                  <ProductTile product={products[0]} />
-                  {products.length > 1 && (
-                    <View style={styles.spacedContainer}>
-                      <OrDivider />
-                      {products.slice(1).map((product) => (
-                        <ProductTileSmall product={product} />
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </BottomSheetScrollView>
-            ) : (
-              // No products found: fixed, non-scrollable view
-              <View style={styles.notFoundContainer}>
-                <SadCat />
+                {products.length > 0 ? (
+                  <View style={styles.spacedContainer}>
+                    <ProductTile product={products[0]} />
+                    {products.length > 1 && (
+                      <View style={styles.spacedContainer}>
+                        <OrDivider />
+                        {products.slice(1).map((product) => (
+                          <ProductTileSmall
+                            key={product.product_name}
+                            product={product}
+                          />
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.notFoundContainer}>
+                    <SadCat />
+                    <Text style={styles.message}>No products found.</Text>
+                  </View>
+                )}
+                {/* "No Match" button always shown at the bottom */}
                 <Pressable
                   style={styles.noMatchButton}
                   onPress={() => router.push("../form")}
                 >
                   <Text style={styles.noMatchButtonText}>No Match</Text>
                 </Pressable>
-              </View>
-            )
-          ) : (
-            // Loading state
-            <BottomSheetScrollView
-              contentContainerStyle={styles.modalContentContainer}
-            >
-              <View style={styles.loadingContainer}>
-                <ProductSkeleton />
-              </View>
-            </BottomSheetScrollView>
-          )}
-        </BottomSheetModal>
-      </BottomSheetModalProvider>
+              </BottomSheetScrollView>
+            ) : (
+              <BottomSheetScrollView
+                contentContainerStyle={styles.modalContentContainer}
+              >
+                <View style={styles.loadingContainer}>
+                  <ProductSkeleton />
+                </View>
+              </BottomSheetScrollView>
+            )}
+          </BottomSheetModal>
+        </BottomSheetModalProvider>
+      </View>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
+    flex: 1,
+    backgroundColor: "#ADD8E6", // light blue background for the whole page
+  },
+  centeredContainer: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
   },
   message: {
     textAlign: "center",
     paddingBottom: 10,
   },
+  cameraContainer: {
+    flex: 1,
+  },
   camera: {
     flex: 1,
+    // Optionally, if CameraView’s default background is opaque,
+    // you can try making it transparent:
+    backgroundColor: "transparent",
   },
   modalContentContainer: {
     padding: 24,
@@ -182,9 +203,7 @@ const styles = StyleSheet.create({
   spacedContainer: {
     gap: 16,
   },
-  // Fixed container for no-results state
   notFoundContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -194,7 +213,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
-    marginTop: 1,
+    marginTop: 16,
     width: "100%",
   },
   noMatchButtonText: {
