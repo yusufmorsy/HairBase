@@ -112,7 +112,7 @@ def search_db(query: str):
                         )
                     ) as json_result
                 FROM products
-                WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s)
+                WHERE to_tsvector(unaccent(product_name) || ' ' || unaccent(brand_name)) @@ websearch_to_tsquery('english', unaccent(%s))
                 LIMIT 20;
                 """, (query, query))
         return cur.fetchone()[0]  # Get the JSON array result
