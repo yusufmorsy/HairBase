@@ -22,6 +22,17 @@ export default function MyFormyPage() {
   const { historyProducts, setHistoryProducts } = useContext(HistoryContext);
 
   const addProduct = async () => {
+    console.log("press");
+    const obj = {
+      product_name: productName,
+      brand_name: brandName,
+      textures,
+      types,
+      ingredients,
+      concerns,
+      image,
+    };
+    console.log(obj);
     let resp = await fetch(
       "https://blasterhacks.lenixsavesthe.world/add_product",
       {
@@ -29,30 +40,22 @@ export default function MyFormyPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          product_name: productName,
-          brand_name: brandName,
-          textures,
-          types,
-          ingredients,
-          concerns,
-          image,
-        }),
+        body: JSON.stringify(obj),
       }
     );
 
     console.log(resp);
 
-    // const { productId } = await resp.json();
-    // console.log(productId);
+    const { productId } = await resp.json();
+    console.log(productId);
 
-    // resp = await fetch(
-    //   `https://blasterhacks.lenixsavesthe.world/show_product?product_id=${productId}`
-    // );
+    resp = await fetch(
+      `https://blasterhacks.lenixsavesthe.world/show_product?product_id=${productId}`
+    );
 
-    // const product: Product = await resp.json();
+    const product: Product = await resp.json();
 
-    // setHistoryProducts([...historyProducts, product]);
+    setHistoryProducts([...historyProducts, product]);
 
     router.replace("/history");
   };

@@ -87,7 +87,7 @@ export default function History() {
           {historyProducts.length === 0 ? (
             <Text style={styles.empty}>No scans yet</Text>
           ) : (
-            [...historyProducts].reverse().map((product, index) => (
+            historyProducts.map((product, index) => (
               // <ProductCard
               //   key={product.id || index.toString()}
               //   product={product}

@@ -11,63 +11,53 @@ import {
   Pressable,
 } from "react-native";
 import React, { useState, useEffect } from "react";
+import ProductTile from "@/components/ProductTile";
+import { Product } from "@/types/Product";
 
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  rating: number;
-  hairTexture: string;
-  imageUrl: string;
-  benefits: string;
-  concerns: string;
-  hairTypes: string;
-}
+// const ProductCard = ({ product }: { product: Product }) => {
+//   const [expanded, setExpanded] = useState(false);
 
-const ProductCard = ({ product }: { product: Product }) => {
-  const [expanded, setExpanded] = useState(false);
+//   const handleCardPress = () => {
+//     // Navigate using the allowed route with matching param name.
+//     router.push({
+//       pathname: "/products/[productId]",
+//       params: { productId: product.id },
+//     });
+//   };
 
-  const handleCardPress = () => {
-    // Navigate using the allowed route with matching param name.
-    router.push({
-      pathname: "/products/[productId]",
-      params: { productId: product.id },
-    });
-  };
-
-  return (
-    <Pressable onPress={handleCardPress} style={styles.card}>
-      <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
-      <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.productName}>{product.name}</Text>
-          <Text style={styles.productBrand}>{product.brand}</Text>
-        </View>
-      </View>
-      <Text style={styles.hairTexture}>Ideal for: {product.hairTexture}</Text>
-      <Pressable
-        onPress={(e) => {
-          // Prevent card press if tapping the "Show More" button.
-          e.stopPropagation();
-          setExpanded(!expanded);
-        }}
-      >
-        <Text style={styles.expandText}>
-          {expanded ? "Show Less" : "Show More"}
-        </Text>
-      </Pressable>
-      {expanded && (
-        <View style={styles.expandedContent}>
-          <Text style={styles.detailText}>
-            Ingredient Details: {product.benefits}
-          </Text>
-          <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
-          <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
-        </View>
-      )}
-    </Pressable>
-  );
-};
+//   return (
+//     <Pressable onPress={handleCardPress} style={styles.card}>
+//       <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
+//       <View style={styles.cardHeader}>
+//         <View>
+//           <Text style={styles.productName}>{product.name}</Text>
+//           <Text style={styles.productBrand}>{product.brand}</Text>
+//         </View>
+//       </View>
+//       <Text style={styles.hairTexture}>Ideal for: {product.hairTexture}</Text>
+//       <Pressable
+//         onPress={(e) => {
+//           // Prevent card press if tapping the "Show More" button.
+//           e.stopPropagation();
+//           setExpanded(!expanded);
+//         }}
+//       >
+//         <Text style={styles.expandText}>
+//           {expanded ? "Show Less" : "Show More"}
+//         </Text>
+//       </Pressable>
+//       {expanded && (
+//         <View style={styles.expandedContent}>
+//           <Text style={styles.detailText}>
+//             Ingredient Details: {product.benefits}
+//           </Text>
+//           <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
+//           <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
+//         </View>
+//       )}
+//     </Pressable>
+//   );
+// };
 
 export default function Index() {
   // Store the current search query; default is "shampoo"
@@ -75,56 +65,24 @@ export default function Index() {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        console.log("Fetching products for query:", query);
-        const res = await fetch(
-          `https://blasterhacks.lenixsavesthe.world/search?query=${encodeURIComponent(
-            query
-          )}`
-        );
-        const data = await res.json();
+    const fetchProducts = async () => {
+      const res = await fetch(
+        `https://blasterhacks.lenixsavesthe.world/search?query=${query}`
+      );
+      const products: Product[] = await res.json();
+      console.log(products);
+      setProducts(products);
+    };
 
-        let productsArray: any[] = [];
-        if (Array.isArray(data)) {
-          productsArray = data;
-        } else {
-          console.error("Unexpected data format:", data);
-        }
-
-        // Transform the API response into our Product interface.
-        const transformed = productsArray
-          .slice(1, 20)
-          .map((item: any, index: number) => ({
-            id: item.product_id ? String(item.product_id) : `no-id-${index}`,
-            name: item.product_name || "No name",
-            brand: item.brand_name || "No brand",
-            rating: item.avg_rating || item.rank || 0,
-            hairTexture: Array.isArray(item.textures)
-              ? item.textures.join(", ")
-              : item.textures || "N/A",
-            imageUrl: item.image_url || "https://via.placeholder.com/200",
-            benefits: Array.isArray(item.ingredients)
-              ? item.ingredients.join(", ")
-              : item.ingredients || "N/A",
-            concerns: Array.isArray(item.concerns)
-              ? item.concerns.join(", ")
-              : item.concerns || "N/A",
-            hairTypes: Array.isArray(item.types)
-              ? item.types.join(", ")
-              : item.types || "N/A",
-          }));
-
-        setProducts(transformed);
-      } catch (error) {
-        console.error("Fetch error:", error);
-      }
-    })();
+    fetchProducts();
   }, [query]);
 
   return (
     <>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 60 }}>
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.contentContainer}
+      >
         {/* Header Section */}
         <View style={styles.headerSection}>
           <SearchBar onSearch={setQuery} />
@@ -135,9 +93,11 @@ export default function Index() {
           {products.length === 0 ? (
             <Text style={styles.noProductsText}>No products found.</Text>
           ) : (
-            products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))
+            products
+              .slice(1, 20)
+              .map((product: Product) => (
+                <ProductTile product={product} key={product.product_id} />
+              ))
           )}
         </View>
       </ScrollView>
@@ -146,11 +106,19 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: "#FFFFFF", // White background for the whole page.
+  },
+  contentContainer: {
+    padding: 60,
+  },
   headerSection: {
     marginBottom: 16,
   },
   productsContainer: {
     marginTop: 20,
+    gap: 32,
   },
   noProductsText: {
     fontSize: 16,
