@@ -1,6 +1,7 @@
 import Button from "@/components/Button";
 import Checklist from "@/components/Checklist";
 import InputGroup from "@/components/InputGroup";
+import { HistoryContext } from "@/providers/HistoryContext";
 import { ImageContext } from "@/providers/ImageContext";
 import { Product } from "@/types/Product";
 import { Feather } from "@expo/vector-icons";
@@ -18,6 +19,7 @@ export default function MyFormyPage() {
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [concerns, setConcerns] = useState<string[]>([]);
   const { image } = useContext(ImageContext);
+  const { historyProducts, setHistoryProducts } = useContext(HistoryContext);
 
   const addProduct = async () => {
     let resp = await fetch(
@@ -39,18 +41,18 @@ export default function MyFormyPage() {
       }
     );
 
-    const { productId } = await resp.json();
+    console.log(resp);
 
-    resp = await fetch(
-      `https://blasterhacks.lenixsavesthe.world/show_product?product_id=${productId}`
-    );
+    // const { productId } = await resp.json();
+    // console.log(productId);
 
-    const product: Product = await resp.json();
+    // resp = await fetch(
+    //   `https://blasterhacks.lenixsavesthe.world/show_product?product_id=${productId}`
+    // );
 
-    const prods = (await AsyncStorage.getItem("product-history")) || "";
-    const history = JSON.parse(prods) as Product[];
-    history.push(product);
-    await AsyncStorage.setItem("product-history", JSON.stringify(history));
+    // const product: Product = await resp.json();
+
+    // setHistoryProducts([...historyProducts, product]);
 
     router.replace("/history");
   };

@@ -19,6 +19,7 @@ import ProductTileSmall from "@/components/ProductTileSmall";
 import SadCat from "@/components/SadCat";
 import { ImageContext } from "@/providers/ImageContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { HistoryContext } from "@/providers/HistoryContext";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -27,6 +28,7 @@ export default function ScanScreen() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   const { image, setImage } = useContext(ImageContext);
+  const { historyProducts, setHistoryProducts } = useContext(HistoryContext);
 
   if (!permission) {
     return <View />;
@@ -74,19 +76,24 @@ export default function ScanScreen() {
 
     const ps: Product[] = await response.json();
     setProducts(ps || []);
-    console.log(ps);
 
-    // let savedProducts: Product[]
-    const savedProds: string =
-      (await AsyncStorage.getItem("product-history")) || "";
-    const parsedProds: Product[] = JSON.parse(savedProds) as Product[];
+    if (ps && ps.length > 0) {
+      setHistoryProducts([...historyProducts, ps[0]]);
+    }
 
-    parsedProds.push(ps[0]);
-    console.log("prods after push", parsedProds);
+    // console.log(ps);
 
-    const pJson = JSON.stringify(parsedProds);
-    await AsyncStorage.setItem("product-history", pJson);
-    console.log("saved product history locally");
+    // // let savedProducts: Product[]
+    // const savedProds: string =
+    //   (await AsyncStorage.getItem("product-history")) || "";
+    // const parsedProds: Product[] = JSON.parse(savedProds) as Product[];
+
+    // parsedProds.push(ps[0]);
+    // console.log("prods after push", parsedProds);
+
+    // const pJson = JSON.stringify(parsedProds);
+    // await AsyncStorage.setItem("product-history", pJson);
+    // console.log("saved product history locally");
   };
 
   // Adjust snapPoints: when no products are found, raise the bottom sheet higher (e.g. 400)
