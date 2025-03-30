@@ -2,7 +2,14 @@ import ScannerLink from "@/components/ScannerLink";
 import SearchBar from "@/components/SearchBar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, router, Stack } from "expo-router";
-import { ScrollView, StyleSheet, Text, View, Image } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Pressable,
+} from "react-native";
 import React, { useState, useEffect } from "react";
 
 interface Product {
@@ -20,47 +27,62 @@ interface Product {
 const ProductCard = ({ product }: { product: Product }) => {
   const [expanded, setExpanded] = useState(false);
 
+  const handleCardPress = () => {
+    // Navigate using the allowed route with matching param name.
+    router.push({
+      pathname: '/products/[productId]',
+      params: { productId: product.id },
+    });
+  };
+
   return (
-    <View style={styles.card}>
+    <Pressable onPress={handleCardPress} style={styles.card}>
       <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.productName}>{product.name}</Text>
           <Text style={styles.productBrand}>{product.brand}</Text>
         </View>
-        <Text style={styles.rating}>⭐ {product.rating}</Text>
       </View>
       <Text style={styles.hairTexture}>Ideal for: {product.hairTexture}</Text>
-      <Text style={styles.expandText} onPress={() => setExpanded(!expanded)}>
-        {expanded ? "Show Less" : "Show More"}
-      </Text>
+      <Pressable
+        onPress={(e) => {
+          // Prevent card press if tapping the "Show More" button.
+          e.stopPropagation();
+          setExpanded(!expanded);
+        }}
+      >
+        <Text style={styles.expandText}>
+          {expanded ? "Show Less" : "Show More"}
+        </Text>
+      </Pressable>
       {expanded && (
         <View style={styles.expandedContent}>
-          <Text style={styles.detailText}>Ingredient Details: {product.benefits}</Text>
+          <Text style={styles.detailText}>
+            Ingredient Details: {product.benefits}
+          </Text>
           <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
-          <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
+          <Text style={styles.detailText}>
+            Hair Types: {product.hairTypes}
+          </Text>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 };
 
 export default function Index() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [apiResponse, setApiResponse] = useState<any>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        // Using a query that returns products; adjust as needed.
         const res = await fetch(
-          "https://blasterhacks.lenixsavesthe.world/search?query=cactus"
+          "https://blasterhacks.lenixsavesthe.world/search?query=shampoo"
         );
         const data = await res.json();
-        console.log("API response:", data);
-        setApiResponse(data);
 
-        let productsArray = [];
+        let productsArray: any[] = [];
         if (Array.isArray(data)) {
           productsArray = data;
         } else {
@@ -102,26 +124,22 @@ export default function Index() {
           headerRight: () => <ScannerLink />,
         }}
       />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 60 }}>
         {/* Header Section */}
         <View style={styles.headerSection}>
           <SearchBar />
-          <Link href="/products/2592863">Hello</Link>
         </View>
-
-        {/* Debug: Render raw API response */}
-        {apiResponse && (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 12 }}>
-              API Response: {JSON.stringify(apiResponse)}
-            </Text>
-          </View>
-        )}
 
         {/* Products Section */}
         <View style={styles.productsContainer}>
           {products.length === 0 ? (
-            <Text style={{ fontSize: 16, textAlign: "center", marginTop: 20 }}>
+            <Text
+              style={{
+                fontSize: 16,
+                textAlign: "center",
+                marginTop: 20,
+              }}
+            >
               No products found.
             </Text>
           ) : (
@@ -140,7 +158,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   productsContainer: {
-    marginTop: 16,
+    marginTop: 20,
   },
   card: {
     borderWidth: 1,
