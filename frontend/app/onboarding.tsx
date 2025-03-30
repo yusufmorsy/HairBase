@@ -224,6 +224,10 @@ export default function OnboardingPage() {
         {/* Page 4: Hair Concerns */}
         <View style={styles.page} key="5">
           <Hero imageSource={require("@/assets/images/curly-hair.svg")} />
+
+          <Pressable style={styles.completeButton} onPress={onComplete}>
+            <Text style={styles.completeButtonText}>Complete Onboarding</Text>
+          </Pressable>
           <Checklist
             question="What concerns do you have?"
             options={[
@@ -237,9 +241,6 @@ export default function OnboardingPage() {
             selectedValues={concerns}
             onToggle={toggleConcern}
           />
-          <Pressable style={styles.completeButton} onPress={onComplete}>
-            <Text style={styles.completeButtonText}>Complete Onboarding</Text>
-          </Pressable>
         </View>
       </PagerView>
       <SafeAreaView edges={["left", "bottom", "right"]}>

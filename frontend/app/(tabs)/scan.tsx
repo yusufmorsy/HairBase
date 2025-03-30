@@ -50,18 +50,24 @@ export default function ScanScreen() {
       quality: 0.25,
     });
 
-    const ps: Product[] = await (
-      await fetch("https://blasterhacks.lenixsavesthe.world/groq-ocr", {
+    const response = await fetch(
+      "https://blasterhacks.lenixsavesthe.world/groq-ocr",
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ image: picture?.base64 }),
-      })
-    ).json();
+      }
+    );
 
+    if (response.status != 200) {
+      setProducts([]);
+      return;
+    }
+
+    const ps: Product[] = await response.json();
     console.log(ps);
-
     setProducts(ps || []);
   };
 
@@ -78,9 +84,9 @@ export default function ScanScreen() {
         <BottomSheetModal
           ref={bottomSheetModalRef}
           snapPoints={
-            !products
+            !products // No query
               ? [350]
-              : products.length == 0
+              : products.length == 0 // No product found
               ? [150]
               : products.length == 1
               ? [350]
@@ -117,6 +123,15 @@ export default function ScanScreen() {
               <View style={styles.loadingContainer}>
                 <ProductSkeleton />
               </View>
+            )}
+
+            {products && (
+              <Pressable
+                style={styles.noMatchButton}
+                onPress={() => router.push("/manualfill")}
+              >
+                <Text style={styles.noMatchButtonText}>No Match</Text>
+              </Pressable>
             )}
           </BottomSheetScrollView>
         </BottomSheetModal>
@@ -203,5 +218,17 @@ const styles = StyleSheet.create({
   },
   spacedContainer: {
     gap: 16,
+  },
+  noMatchButton: {
+    backgroundColor: "#F44336",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  noMatchButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
