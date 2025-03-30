@@ -2,7 +2,9 @@ import Button from "@/components/Button";
 import Checklist from "@/components/Checklist";
 import InputGroup from "@/components/InputGroup";
 import { ImageContext } from "@/providers/ImageContext";
+import { Product } from "@/types/Product";
 import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useContext, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -18,21 +20,37 @@ export default function MyFormyPage() {
   const { image } = useContext(ImageContext);
 
   const addProduct = async () => {
-    await fetch("https://blasterhacks.lenixsavesthe.world/add_product", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        product_name: productName,
-        brand_name: brandName,
-        textures,
-        types,
-        ingredients,
-        concerns,
-        image,
-      }),
-    });
+    let resp = await fetch(
+      "https://blasterhacks.lenixsavesthe.world/add_product",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_name: productName,
+          brand_name: brandName,
+          textures,
+          types,
+          ingredients,
+          concerns,
+          image,
+        }),
+      }
+    );
+
+    const { productId } = await resp.json();
+
+    resp = await fetch(
+      `https://blasterhacks.lenixsavesthe.world/show_product?product_id=${productId}`
+    );
+
+    const product: Product = await resp.json();
+
+    const prods = (await AsyncStorage.getItem("product-history")) || "";
+    const history = JSON.parse(prods) as Product[];
+    history.push(product);
+    await AsyncStorage.setItem("product-history", JSON.stringify(history));
 
     router.replace("/history");
   };

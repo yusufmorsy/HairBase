@@ -8,7 +8,6 @@ export default function SearchBar() {
         placeholder="Search..."
         style={styles.input}
         placeholderTextColor="#858585"
-        
       />
       <Feather name="search" color="#858585" size={18} />
     </View>

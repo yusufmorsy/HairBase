@@ -301,6 +301,7 @@ def add_product(request: ProductRequest):
             cur.execute("""INSERT INTO ingredient_to_products (ingredient_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
 
     conn.commit()
+    return {"productId": pk}
 
 
 def add_img(img: str):
