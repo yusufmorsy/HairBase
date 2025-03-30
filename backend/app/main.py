@@ -82,6 +82,7 @@ def search_db(query: str):
                             'product_id', products.product_id,
                             'product_name', product_name,
                             'brand_name', brand_name,
+                            'image_url', image_url,
                             'rank', ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)),
                             'concerns', (
                                 SELECT json_agg(concerns.name) 
