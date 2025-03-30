@@ -18,6 +18,7 @@ import ProductTile from "@/components/ProductTile";
 import ProductTileSmall from "@/components/ProductTileSmall";
 import SadCat from "@/components/SadCat";
 import { ImageContext } from "@/providers/ImageContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -73,17 +74,30 @@ export default function ScanScreen() {
 
     const ps: Product[] = await response.json();
     console.log(ps);
+
+    // let savedProducts: Product[]
+    const savedProds: string = (await AsyncStorage.getItem("product-history")) || "";
+    const parsedProds: Product[] = JSON.parse(savedProds) as Product[]
+
+    parsedProds.push(ps[0])
+    console.log("prods after push", parsedProds)
+
+    const pJson = JSON.stringify(parsedProds)
+    await AsyncStorage.setItem('product-history', pJson); 
+    console.log("saved product history locally")
+
     setProducts(ps || []);
   };
 
   // Adjust snapPoints: when no products are found, raise the bottom sheet higher (e.g. 400)
-  const snapPoints = !products
-    ? [350]
-    : products.length === 0
-    ? [300]
-    : products.length === 1
-    ? [350]
-    : [350, "80%"];
+  const snapPoints =
+    !products
+      ? [350]
+      : products.length === 0
+      ? [300]
+      : products.length === 1
+      ? [350]
+      : [350, "80%"];
 
   return (
     <GestureHandlerRootView style={styles.container}>

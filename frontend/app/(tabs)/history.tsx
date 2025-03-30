@@ -11,20 +11,20 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, router } from "expo-router";
+import { Product } from "@/types/Product";
 
-interface Product {
-  id: string;
+interface IProduct {
+  id: number;
   name: string;
   brand: string;
   rating: number;
   hairTexture: string;
   imageUrl: string;
-  benefits: string;
   concerns: string;
   hairTypes: string;
 }
 
-const ProductCard = ({ product }: { product: Product }) => {
+const ProductCard = ({ product }: { product: IProduct }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -45,7 +45,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       </Pressable>
       {expanded && (
         <View style={styles.expandedContent}>
-          <Text style={styles.detailText}>Benefits: {product.benefits}</Text>
+          {/* <Text style={styles.detailText}>Benefits: {product.benefits}</Text> */}
           <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
           <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
         </View>
@@ -55,7 +55,7 @@ const ProductCard = ({ product }: { product: Product }) => {
 };
 
 export default function History() {
-  const [historyProducts, setHistoryProducts] = useState<Product[]>([]);
+  const [historyProducts, setHistoryProducts] = useState<IProduct[]>([]);
   const [addedContributionsCount, setAddedContributionsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
@@ -63,54 +63,28 @@ export default function History() {
     async function loadHistory() {
       try {
         // Retrieve the scanned product IDs from AsyncStorage.
-        const storedHistory = await AsyncStorage.getItem("scannedProducts");
-        let scannedIds: string[] = [];
-        if (storedHistory !== null) {
-          scannedIds = JSON.parse(storedHistory);
-        }
+        const savedProds: string = (await AsyncStorage.getItem("product-history")) || "";
+        const parsedProds: Product[] = JSON.parse(savedProds) as Product[]
+
+        // let scannedIds: string[] = [];
+        // if (storedHistory !== null) {
+        //   scannedIds = JSON.parse(storedHistory);
+        // }
+
+
 
         // For each scanned product id, call the search API.
-        const fetchPromises = scannedIds.map(async (id) => {
-          const res = await fetch(
-            "https://blasterhacks.lenixsavesthe.world/search?query=" + id
-          );
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            // Use the first result from the API.
-            const item = data[0];
+        const fetchPromises = parsedProds.map((product) => {
             return {
-              id: item.product_id ? String(item.product_id) : id,
-              name: item.product_name || "No name",
-              brand: item.brand_name || "No brand",
-              rating: item.avg_rating || item.rank || 0,
-              hairTexture: Array.isArray(item.textures)
-                ? item.textures.join(", ")
-                : item.textures || "N/A",
-              imageUrl: item.image_url || "https://via.placeholder.com/200",
-              benefits: Array.isArray(item.ingredients)
-                ? item.ingredients.join(", ")
-                : item.ingredients || "N/A",
-              concerns: Array.isArray(item.concerns)
-                ? item.concerns.join(", ")
-                : item.concerns || "N/A",
-              hairTypes: Array.isArray(item.types)
-                ? item.types.join(", ")
-                : item.types || "N/A",
-            } as Product;
-          } else {
-            // If the API returns no results, mark this as an added contribution.
-            return {
-              id: id,
-              name: "Unknown Product",
-              brand: "N/A",
-              rating: 0,
-              hairTexture: "N/A",
-              imageUrl: "https://via.placeholder.com/200",
-              benefits: "N/A",
-              concerns: "N/A",
-              hairTypes: "N/A",
-            } as Product;
-          }
+              id: product.product_id,
+              name: product.product_name || "Unknown Product",
+              brand: product.brand_name || "N/A",
+              rating: 0 || 0,
+              hairTexture: product.textures || "N/A",
+              imageUrl: product.image_url || "https://via.placeholder.com/200",
+              concerns: product.concerns || "N/A",
+              hairTypes: product.types || "N/A",
+            } as IProduct;
         });
 
         const fetchedProducts = await Promise.all(fetchPromises);

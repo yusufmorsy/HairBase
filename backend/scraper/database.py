@@ -165,15 +165,4 @@ def insert_concerns(sku: str, attrs: List[str], conn: Connection[TupleRow]):
 
 
 
-def insert_one(item: str, table: str, conn: Connection[TupleRow]):
-    pass
-    
-def check_if_exists(item: str, table: str, conn: Connection[TupleRow]):
-    pass
-
-
-
-
-
-
 
