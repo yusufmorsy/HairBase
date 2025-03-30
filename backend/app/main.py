@@ -122,7 +122,7 @@ def product_search(query: str):
 
     query_list = query.split(" ")
     for i in range(0, len(query_list)):
-        q = search_db(query_list.join(" "))
+        q = search_db(" ".join(query_list))
         if q == None:
             query_list = query_list[:-1]
         else:
