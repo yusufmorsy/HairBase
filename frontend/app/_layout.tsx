@@ -1,10 +1,13 @@
 import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ProductContext } from "@/providers/ProductContext";
+import { ImageContext } from "@/providers/ImageContext";
 
 export default function RootLayout() {
+  const [image, setImage] = useState<string>();
+
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       const completed = await AsyncStorage.getItem("onboarding-complete");
@@ -15,25 +18,28 @@ export default function RootLayout() {
     checkOnboardingStatus();
   }, []);
 
-  AsyncStorage.getAllKeys().then(console.log);
-
   return (
     <>
-      <Stack
-        screenOptions={{
-          navigationBarColor: "#ffffff00",
-          navigationBarTranslucent: true,
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "Results" }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="manualfill" options={{ headerShown: true, title: "Manual Fill" }} />
-        <Stack.Screen
+      <ImageContext.Provider value={{ image, setImage }}>
+        <Stack
+          screenOptions={{
+            navigationBarColor: "#ffffff00",
+            navigationBarTranslucent: true,
+          }}
+        >
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, title: "Results" }}
+          />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="form" options={{ title: "Add a Product" }} />
+          <Stack.Screen
             name="products"
             options={{ title: "Product Information" }}
           />
-      </Stack>
-      <StatusBar style="dark" />
+        </Stack>
+        <StatusBar style="dark" />
+      </ImageContext.Provider>
     </>
   );
 }

@@ -2,7 +2,7 @@ import ScannerLink from "@/components/ScannerLink";
 import SearchBar from "@/components/SearchBar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, router, Stack } from "expo-router";
-import { ScrollView, StyleSheet, Text, View, Image } from "react-native";
+import { ScrollView, StyleSheet, Text, View, Image, TextInput } from "react-native";
 import React, { useState, useEffect } from "react";
 
 interface Product {
@@ -36,7 +36,9 @@ const ProductCard = ({ product }: { product: Product }) => {
       </Text>
       {expanded && (
         <View style={styles.expandedContent}>
-          <Text style={styles.detailText}>Ingredient Details: {product.benefits}</Text>
+          <Text style={styles.detailText}>
+            Ingredient Details: {product.benefits}
+          </Text>
           <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
           <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
         </View>

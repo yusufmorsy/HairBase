@@ -1,5 +1,5 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { Button, StyleSheet, Text, View, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
 import ShutterButton from "@/components/ShutterButton";
@@ -17,12 +17,15 @@ import { Product } from "@/types/Product";
 import ProductTile from "@/components/ProductTile";
 import ProductTileSmall from "@/components/ProductTileSmall";
 import SadCat from "@/components/SadCat";
+import { ImageContext } from "@/providers/ImageContext";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [products, setProducts] = useState<Product[] | undefined>(undefined);
   const cameraViewRef = useRef<CameraView>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const { image, setImage } = useContext(ImageContext);
 
   if (!permission) {
     return <View />;
@@ -49,6 +52,9 @@ export default function ScanScreen() {
       quality: 0.25,
     });
 
+    const encodedImage = picture?.base64;
+    setImage(encodedImage);
+
     const response = await fetch(
       "https://blasterhacks.lenixsavesthe.world/groq-ocr",
       {
@@ -56,7 +62,7 @@ export default function ScanScreen() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image: picture?.base64 }),
+        body: JSON.stringify({ image: encodedImage }),
       }
     );
 
@@ -103,25 +109,12 @@ export default function ScanScreen() {
                 contentContainerStyle={styles.modalContentContainer}
               >
                 <View style={styles.spacedContainer}>
-                  <Pressable
-                    onPress={() =>
-                      router.push(`/products/${products[0].product_id}`)
-                    }
-                  >
-                    <ProductTile product={products[0]} />
-                  </Pressable>
+                  <ProductTile product={products[0]} />
                   {products.length > 1 && (
                     <View style={styles.spacedContainer}>
                       <OrDivider />
                       {products.slice(1).map((product) => (
-                        <Pressable
-                          key={product.product_id}
-                          onPress={() =>
-                            router.push(`/products/${product.product_id}`)
-                          }
-                        >
-                          <ProductTileSmall product={product} />
-                        </Pressable>
+                        <ProductTileSmall product={product} />
                       ))}
                     </View>
                   )}
@@ -133,7 +126,7 @@ export default function ScanScreen() {
                 <SadCat />
                 <Pressable
                   style={styles.noMatchButton}
-                  onPress={() => router.push("/manualfill")}
+                  onPress={() => router.push("/form")}
                 >
                   <Text style={styles.noMatchButtonText}>No Match</Text>
                 </Pressable>
