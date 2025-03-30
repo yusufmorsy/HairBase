@@ -85,37 +85,37 @@ async def groq_api_call(request: ImageRequest):
                 {
                     "role": "user",
                     "content": [
-                        # {"type": "text", "text": """
-                        #  This is a picture of a hair product (like shampoo or conditioner). Using only
-                        #  the product and brand name (no extra information), please give me a search query
-                        #  to find this item. For example, for a different product, with the name 'Lavender
-                        #  & Volume', by a company named 'Dove', you would say, "Dove Lavender & Volume".
-                        #  It might not be that simple, though, so do your best. Your response should be as
-                        #  minimal as possible, while still being able to find the find the product. If you
-                        #  aren't confident about something, leave it out. If you aren't confident about
-                        #  something, but you think it is necessary to find the product, put it last in the
-                        #  query. For example, if you saw "Dove", "Lavender", and "Beauty" (and you thought
-                        #  beauty was a part of the product's name, but weren't confident about it, possibly
-                        #  because it is slightly distorted, or might not be part of the product name) you
-                        #  would write "Dove Lavender", or possibly "Dove Lavender Beauty", but definitely
-                        #  not "Dove Beauty Lavender". Please do not include any additional formatting or
-                        #  commentary."""},
                         {"type": "text", "text": """
-                        This is a picture of a hair product, like shampoo or conditioner. Using this image,
-                        decypher the text you see on the product label, and format it in a way that would
-                        create a search query for a POSTGRESQL Database. Format your response as, as well
-                         as how confident you are in your response in a JSON object. Use the example below:
+                         This is a picture of a hair product (like shampoo or conditioner). Using only
+                         the product and brand name (no extra information), please give me a search query
+                         to find this item. For example, for a different product, with the name 'Lavender
+                         & Volume', by a company named 'Dove', you would say, "Dove Lavender & Volume".
+                         It might not be that simple, though, so do your best. Your response should be as
+                         minimal as possible, while still being able to find the find the product. If you
+                         aren't confident about something, leave it out. If you aren't confident about
+                         something, but you think it is necessary to find the product, put it last in the
+                         query. For example, if you saw "Dove", "Lavender", and "Beauty" (and you thought
+                         beauty was a part of the product's name, but weren't confident about it, possibly
+                         because it is slightly distorted, or might not be part of the product name) you
+                         would write "Dove Lavender", or possibly "Dove Lavender Beauty", but definitely
+                         not "Dove Beauty Lavender". Please do not include any additional formatting or
+                         commentary."""},
+                        # {"type": "text", "text": """
+                        # This is a picture of a hair product, like shampoo or conditioner. Using this image,
+                        # decypher the text you see on the product label, and format it in a way that would
+                        # create a search query for a POSTGRESQL Database. Format your response as, as well
+                        #  as how confident you are in your response in a JSON object. Use the example below:
 
-                         {
-                            "found_text": "Aveda Shampure",
-                            "confidence": 0.70274
-                         }
+                        #  {
+                        #     "found_text": "Aveda Shampure",
+                        #     "confidence": 0.70274
+                        #  }
                          
-                        For Example, if you saw an image of a shampoo bottle with the text 'Aveda' and 'Shampure'.
-                        You would respond with, "Aveda Shampure". Only respond with next that you are confident about.
-                        DO NOT SEND ANY ADDITIONAL TEXT. DO NOT SEND ANY ADDITIONAL TEXT. WE ONLY NEED THE STRINGS OF TEXT
-                        THAT YOU ARE CONFIDENT ABOUT.
-                        """},
+                        # For Example, if you saw an image of a shampoo bottle with the text 'Aveda' and 'Shampure'.
+                        # You would respond with, "Aveda Shampure". Only respond with next that you are confident about.
+                        # DO NOT SEND ANY ADDITIONAL TEXT. DO NOT SEND ANY ADDITIONAL TEXT. WE ONLY NEED THE STRINGS OF TEXT
+                        # THAT YOU ARE CONFIDENT ABOUT.
+                        # """},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -134,6 +134,7 @@ async def groq_api_call(request: ImageRequest):
         raise HTTPException(status_code=500, detail=f"Error processing Groq request: {str(e)}")
 
     generated_search_query = chat_completion.choices[0].message.content
+    return search_db(generated_search_query)
 
     res = json.loads(generated_search_query)
     # if type(q) == ''
@@ -320,6 +321,7 @@ def img(id: int):
         encoded_value = cur.fetchone()[0]
         img_data = base64.b64decode(encoded_value)
         return Response(content=img_data, media_type="image/png")
+
 
 @app.get("/get_recommendations")
 def get_recommendations(texture:str,type:str, concerns:list[str] = None, ingredients:list[str] = None):
