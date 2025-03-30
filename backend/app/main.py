@@ -72,7 +72,7 @@ async def groq_api_call(request: ImageRequest):
                         This is a picture of a hair product, like shampoo or conditioner. Using this image,
                         decypher the text you see on the product label, and format it in a way that would
                         create a search query for a POSTGRESQL Database. Format your response as, as well
-                         as how confident you are in your response as follows:
+                         as how confident you are in your response in a JSON object. Use the example below:
 
                          {
                             "found_text": "Aveda Shampure",
