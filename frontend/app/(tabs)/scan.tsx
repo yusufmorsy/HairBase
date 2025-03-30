@@ -19,12 +19,14 @@ import ProductTileSmall from "@/components/ProductTileSmall";
 import SadCat from "@/components/SadCat";
 import { ImageContext } from "@/providers/ImageContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { HistoryContext } from "@/providers/HistoryContext";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [products, setProducts] = useState<Product[] | undefined>(undefined);
   const cameraViewRef = useRef<CameraView>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const { historyProducts, setHistoryProducts } = useContext(HistoryContext);
 
   const { image, setImage } = useContext(ImageContext);
 
@@ -78,16 +80,9 @@ export default function ScanScreen() {
     setProducts(ps || []);
     console.log(ps);
 
-    const savedProds: string =
-      (await AsyncStorage.getItem("product-history")) || "";
-    const parsedProds: Product[] = JSON.parse(savedProds) as Product[];
-
-    parsedProds.push(ps[0]);
-    console.log("prods after push", parsedProds);
-
-    const pJson = JSON.stringify(parsedProds);
-    await AsyncStorage.setItem("product-history", pJson);
-    console.log("saved product history locally");
+    if (ps && ps.length > 0) {
+      setHistoryProducts([...historyProducts, ps[0]]);
+    }
   };
 
   // Adjust snapPoints based on products count

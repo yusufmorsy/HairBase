@@ -4,9 +4,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { ProductContext } from "@/providers/ProductContext";
 import { ImageContext } from "@/providers/ImageContext";
+import { HistoryContext } from "@/providers/HistoryContext";
+import { Product } from "@/types/Product";
 
 export default function RootLayout() {
   const [image, setImage] = useState<string>();
+  const [historyProducts, setHistoryProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -21,24 +24,28 @@ export default function RootLayout() {
   return (
     <>
       <ImageContext.Provider value={{ image, setImage }}>
-        <Stack
-          screenOptions={{
-            navigationBarColor: "#ffffff00",
-            navigationBarTranslucent: true,
-          }}
+        <HistoryContext.Provider
+          value={{ historyProducts, setHistoryProducts }}
         >
-          <Stack.Screen
-            name="(tabs)"
-            options={{ headerShown: false, title: "Results" }}
-          />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="form" options={{ title: "Add a Product" }} />
-          <Stack.Screen
-            name="products"
-            options={{ title: "Product Information" }}
-          />
-        </Stack>
-        <StatusBar style="dark" />
+          <Stack
+            screenOptions={{
+              navigationBarColor: "#ffffff00",
+              navigationBarTranslucent: true,
+            }}
+          >
+            <Stack.Screen
+              name="(tabs)"
+              options={{ headerShown: false, title: "Results" }}
+            />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="form" options={{ title: "Add a Product" }} />
+            <Stack.Screen
+              name="products"
+              options={{ title: "Product Information" }}
+            />
+          </Stack>
+          <StatusBar style="dark" />
+        </HistoryContext.Provider>
       </ImageContext.Provider>
     </>
   );

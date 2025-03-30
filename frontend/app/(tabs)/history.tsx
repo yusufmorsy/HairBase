@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Text,
   View,
@@ -11,6 +11,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, router } from "expo-router";
+import { HistoryContext } from "@/providers/HistoryContext";
+import ProductSkeleton from "@/components/ProductSkeleton";
 // Removed incorrect import for IProduct from "@/types/Product"
 
 interface IProduct {
@@ -50,7 +52,9 @@ const ProductCard = ({ product }: { product: IProduct }) => {
         {expanded && (
           <View style={styles.expandedContent}>
             <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
-            <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
+            <Text style={styles.detailText}>
+              Hair Types: {product.hairTypes}
+            </Text>
           </View>
         )}
       </Pressable>
@@ -71,43 +75,7 @@ const ProductCard = ({ product }: { product: IProduct }) => {
 };
 
 export default function History() {
-  const [historyProducts, setHistoryProducts] = useState<IProduct[]>([]);
-  const [addedContributionsCount, setAddedContributionsCount] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadHistory() {
-      try {
-        const savedProds: string =
-          (await AsyncStorage.getItem("product-history")) || "";
-        const parsedProds = JSON.parse(savedProds);
-
-        // Map each stored product to our IProduct type.
-        const fetchedProducts: IProduct[] = parsedProds.map((product: any) => ({
-          id: product.product_id,
-          name: product.product_name || "Unknown Product",
-          brand: product.brand_name || "N/A",
-          rating: product.avg_rating || 0,
-          hairTexture: product.textures || "N/A",
-          imageUrl: product.image_url || "https://via.placeholder.com/200",
-          concerns: product.concerns || "N/A",
-          hairTypes: product.types || "N/A",
-        }));
-
-        setHistoryProducts(fetchedProducts);
-        // Count the ones that are "Unknown Product"
-        const addedCount = fetchedProducts.filter(
-          (p) => p.name === "Unknown Product"
-        ).length;
-        setAddedContributionsCount(addedCount);
-      } catch (error) {
-        console.error("Error loading history:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadHistory();
-  }, []);
+  const { historyProducts } = useContext(HistoryContext);
 
   return (
     <>
@@ -129,20 +97,27 @@ export default function History() {
             <Text style={styles.clearText}>Clear Local Storage</Text>
           </Pressable>
 
-          {/* Header with added contributions count */}
-          <Text style={styles.header}>
-            You have made {addedContributionsCount} added contributions to HairBase
-          </Text>
-
-          {loading ? (
-            <ActivityIndicator size="large" color="#000" />
-          ) : historyProducts.length === 0 ? (
+          {historyProducts.length === 0 ? (
             <Text style={styles.empty}>No scans yet</Text>
           ) : (
-            historyProducts.map((product, index) => (
+            [...historyProducts].reverse().map((product, index) => (
               <ProductCard
-                key={product.id || index.toString()}
-                product={product}
+                key={product.product_id || index.toString()}
+                product={{
+                  id: product.product_id,
+                  imageUrl:
+                    product?.image_url || "https://via.placeholder.com/200",
+                  brand: product.brand_name,
+                  concerns: product.concerns?.join(", ") || "",
+                  hairTexture: product.textures?.length
+                    ? product.textures.join(", ")
+                    : "N/A",
+                  hairTypes: product.types?.length
+                    ? product.types.join(", ")
+                    : "N/A",
+                  name: product.product_name,
+                  rating: 1,
+                }}
               />
             ))
           )}
