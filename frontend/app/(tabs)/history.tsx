@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 
 interface Product {
   id: string;
@@ -131,25 +131,37 @@ export default function History() {
 
   return (
     <>
-      <Stack.Screen options={{ headerTitle: "History" }} />
+      <Stack.Screen
+        options={{
+          headerTitle: "History",
+        }}
+      />
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Clear Button */}
+          <Pressable
+            style={styles.clearButton}
+            onPress={async () => {
+              await AsyncStorage.clear();
+              router.replace("/onboarding");
+            }}
+          >
+            <Text style={styles.clearText}>Clear Local Storage</Text>
+          </Pressable>
+
+          {/* Header with added contributions count */}
+          <Text style={styles.header}>
+            You have made {addedContributionsCount} added contributions to HairBase
+          </Text>
+
           {loading ? (
             <ActivityIndicator size="large" color="#000" />
+          ) : historyProducts.length === 0 ? (
+            <Text style={styles.empty}>No scans yet</Text>
           ) : (
-            <>
-              <Text style={styles.header}>
-                You have made {addedContributionsCount} added contributions to
-                HairBase
-              </Text>
-              {historyProducts.length === 0 ? (
-                <Text style={styles.empty}>No scans yet</Text>
-              ) : (
-                historyProducts.map((product, index) => (
-                  <ProductCard key={product.id || index.toString()} product={product} />
-                ))
-              )}
-            </>
+            historyProducts.map((product, index) => (
+              <ProductCard key={product.id || index.toString()} product={product} />
+            ))
           )}
         </ScrollView>
       </SafeAreaView>
@@ -164,6 +176,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+  },
+  clearButton: {
+    alignSelf: "flex-end",
+    marginBottom: 16,
+  },
+  clearText: {
+    fontSize: 14,
+    color: "red",
   },
   header: {
     fontSize: 22,
