@@ -103,7 +103,9 @@ async def groq_api_call(request: ImageRequest):
 
     generated_search_query = chat_completion.choices[0].message.content
 
-    return search_db(generated_search_query)
+    q = json.loads(generated_search_query)
+
+    return search_db(q["found_text"])
 
 def search_db(query: str):
     print(f"incoming search query: {query}")
