@@ -36,7 +36,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       </Text>
       {expanded && (
         <View style={styles.expandedContent}>
-          <Text style={styles.detailText}>Benefits: {product.benefits}</Text>
+          <Text style={styles.detailText}>Ingredient Details: {product.benefits}</Text>
           <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
           <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
         </View>
