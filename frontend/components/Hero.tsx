@@ -47,7 +47,7 @@ export default function Hero({ imageSource }: Props) {
 const styles = StyleSheet.create({
   hero: {
     position: "relative",
-    height: 350,
+    height: 375,
     width: "100%",
   },
 });
