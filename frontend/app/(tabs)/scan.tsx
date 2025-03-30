@@ -1,13 +1,6 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
-import {
-  Button,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  Pressable,
-} from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Button, StyleSheet, Text, View, Image, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
 import ShutterButton from "@/components/ShutterButton";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -39,9 +32,7 @@ function MatchedProductCard({ product }: { product: Product }) {
         </View>
         <Text style={styles.rating}>⭐ 4.5</Text>
       </View>
-      <Text style={styles.hairTexture}>
-        Category: {product.product_type}
-      </Text>
+      <Text style={styles.hairTexture}>Category: {product.product_type}</Text>
     </View>
   );
 }
@@ -70,7 +61,7 @@ export default function ScanScreen() {
   const takePicture = async () => {
     setProduct(undefined);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    
+
     // Present the bottom sheet modal at 60%
     bottomSheetModalRef.current?.present();
 
@@ -78,7 +69,7 @@ export default function ScanScreen() {
       base64: true,
       quality: 0.25,
     });
-    
+
     const product: Product = await (
       await fetch("https://blasterhacks.lenixsavesthe.world/groq-ocr", {
         method: "POST",
@@ -88,7 +79,7 @@ export default function ScanScreen() {
         body: JSON.stringify({ image: picture?.base64 }),
       })
     ).json();
-    
+
     setProduct(product);
   };
 

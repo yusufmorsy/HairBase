@@ -75,13 +75,46 @@ async def groq_api_call(request: ImageRequest):
 
 def search_db(query: str):
     with conn.cursor() as cur:
-        cur.execute("""SELECT *, ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)) FROM products JOIN concerns_to_products ON concerns_to_products.product_id = products.product_id JOIN concerns ON concerns.id = concerns_to_products.concern_id
-JOIN ingredient_to_products ON ingredient_to_products.product_id = products.product_id JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
-JOIN textures_to_products ON textures_to_products.product_id = products.product_id JOIN textures ON textures.id = textures_to_products.texture_id
-JOIN types_to_products ON types_to_products.product_id = products.product_id JOIN types ON types.id = types_to_products.type_id
- WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s) LIMIT 20;""", (query, query))
-        return cur.fetchall()
-
+        cur.execute("""
+                SELECT 
+                    json_agg(
+                        json_build_object(
+                            'product_id', products.product_id,
+                            'product_name', product_name,
+                            'brand_name', brand_name,
+                            'rank', ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)),
+                            'concerns', (
+                                SELECT json_agg(concerns.name) 
+                                FROM concerns_to_products 
+                                JOIN concerns ON concerns.id = concerns_to_products.concern_id
+                                WHERE concerns_to_products.product_id = products.product_id
+                            ),
+                            'ingredients', (
+                                SELECT json_agg(ingredients.name)
+                                FROM ingredient_to_products
+                                JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
+                                WHERE ingredient_to_products.product_id = products.product_id
+                            ),
+                            'textures', (
+                                SELECT json_agg(textures.name)
+                                FROM textures_to_products
+                                JOIN textures ON textures.id = textures_to_products.texture_id
+                                WHERE textures_to_products.product_id = products.product_id
+                            ),
+                            'types', (
+                                SELECT json_agg(types.name)
+                                FROM types_to_products
+                                JOIN types ON types.id = types_to_products.type_id
+                                WHERE types_to_products.product_id = products.product_id
+                            )
+                        )
+                    ) as json_result
+                FROM products
+                WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s)
+                LIMIT 20;
+                """, (query, query))
+        return cur.fetchone()[0]  # Get the JSON array result
+        
 @app.get("/search")
 def product_search(query: str):
     return search_db(query)
