@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 import os
 from groq import Groq
 from pydantic import BaseModel
@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 import json
 import psycopg
 from psycopg.rows import dict_row
+import time
+import base64
 
 app = FastAPI()
 load_dotenv()
@@ -240,7 +242,7 @@ def show_product(product_id: int):
 
 @app.get("/groq_concerns")
 def groq_concerns(query: str):
-    
+
     return {
         "name": "Product name",
         "brand": "Brand name",
@@ -262,3 +264,168 @@ def groq_concerns(query: str):
             "vegan",
         ]
     }
+
+class ProductRequest(BaseModel):
+    product_name: str
+    brand_name: str
+    textures: list[str]
+    types: list[str]
+    ingredients: list[str]
+    concerns: list[str]
+    image: str
+
+
+@app.post("/add_product")
+def add_product(request: ProductRequest):
+    image_url = f"https://blasterhacks.lenixsavesthe.world/img?id={add_img(request.image)}"
+
+    with conn.cursor() as cur:
+        pk = time.time()
+        cur.execute("""INSERT INTO products (product_id, product_name, product_sku, brand_name, image_url) VALUES (%s, %s, %s, %s, %s)""", (pk, request.product_name, str(pk), request.brand_name, image_url))
+        
+        for texture in request.textures:
+            cur.execute("""SELECT id FROM textures WHERE lower(name) = lower(%s)""", (texture,))
+            cur.execute("""INSERT INTO textures_to_products (texture_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
+
+
+        for type in request.types:
+            cur.execute("""SELECT id FROM types WHERE lower(name) = lower(%s)""", (type,))
+            cur.execute("""INSERT INTO types_to_products (type_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
+
+        for concern in request.concerns:
+            cur.execute("""SELECT id FROM concerns WHERE lower(name) = lower(%s)""", (concern,))
+            cur.execute("""INSERT INTO concerns_to_products (concern_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
+
+        for ingredient in request.ingredients:
+            cur.execute("""SELECT id FROM ingredients WHERE lower(name) = lower(%s)""", (ingredient,))
+            cur.execute("""INSERT INTO ingredient_to_products (ingredient_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
+
+    conn.commit()
+    return {"productId": pk}
+
+
+def add_img(img: str):
+    with conn.cursor() as cur:
+        cur.execute("""INSERT INTO images (encoded_img) values (%s) RETURNING id""", (img,))
+        pk = cur.fetchone()[0]
+    
+    conn.commit()
+    return pk
+
+
+@app.get("/img")
+def img(id: int):
+    with conn.cursor() as cur:
+        cur.execute("""SELECT encoded_img FROM images WHERE id = %s""", (id,))
+        encoded_value = cur.fetchone()[0]
+        img_data = base64.b64decode(encoded_value)
+        return Response(content=img_data, media_type="image/png")
+
+@app.get("/get_recommendations")
+def get_recommendations(texture:str,type:str, concerns:list[str] = None, ingredients:list[str] = None):
+
+    # skip doing a join
+    # Textures
+    # 1 - Straight
+    # 2 - Wavy
+    # 3 - Curly
+    # 4 - Coily
+
+    # Types
+    # 2 - Fine
+    # 3 - Medium
+    # 4 - Thick
+    with conn.cursor(row_factory=dict_row) as cur:
+        # Build the query dynamically
+        query = """
+            SELECT 
+                json_build_object(
+                    'product_id', products.product_id,
+                    'product_name', products.product_name,
+                    'brand_name', products.brand_name,
+                    'image_url', products.image_url,
+                    'textures', (
+                        SELECT json_agg(textures.name)
+                        FROM textures_to_products
+                        JOIN textures ON textures.id = textures_to_products.texture_id
+                        WHERE textures_to_products.product_id = products.product_id
+                    ),
+                    'types', (
+                        SELECT json_agg(types.name)
+                        FROM types_to_products
+                        JOIN types ON types.id = types_to_products.type_id
+                        WHERE types_to_products.product_id = products.product_id
+                    ),
+                    'concerns', (
+                        SELECT json_agg(concerns.name)
+                        FROM concerns_to_products
+                        JOIN concerns ON concerns.id = concerns_to_products.concern_id
+                        WHERE concerns_to_products.product_id = products.product_id
+                    ),
+                    'ingredients', (
+                        SELECT json_agg(ingredients.name)
+                        FROM ingredient_to_products
+                        JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
+                        WHERE ingredient_to_products.product_id = products.product_id
+                    )
+                ) AS product
+            FROM products
+            WHERE 1=1
+        """
+
+        # Add filters dynamically
+        params = []
+        if texture:
+            query += """
+                AND EXISTS (
+                    SELECT 1
+                    FROM textures_to_products
+                    JOIN textures ON textures.id = textures_to_products.texture_id
+                    WHERE textures_to_products.product_id = products.product_id
+                    AND textures.name = %s
+                )
+            """
+            params.append(texture)
+
+        if type:
+            query += """
+                AND EXISTS (
+                    SELECT 1
+                    FROM types_to_products
+                    JOIN types ON types.id = types_to_products.type_id
+                    WHERE types_to_products.product_id = products.product_id
+                    AND types.name = %s
+                )
+            """
+            params.append(type)
+
+        if concerns:
+            query += """
+                AND EXISTS (
+                    SELECT 1
+                    FROM concerns_to_products
+                    JOIN concerns ON concerns.id = concerns_to_products.concern_id
+                    WHERE concerns_to_products.product_id = products.product_id
+                    AND concerns.name = ANY(%s)
+                )
+            """
+            params.append(concerns)
+
+        if ingredients:
+            query += """
+                AND EXISTS (
+                    SELECT 1
+                    FROM ingredient_to_products
+                    JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
+                    WHERE ingredient_to_products.product_id = products.product_id
+                    AND ingredients.name = ANY(%s)
+                )
+            """
+            params.append(ingredients)
+
+        # Execute the query
+        cur.execute(query, params)
+        recommendations = cur.fetchall()
+
+    # Extract the JSON objects from the query result
+    return {"recommendations": [row["product"] for row in recommendations]}

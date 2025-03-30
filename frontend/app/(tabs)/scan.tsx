@@ -1,5 +1,5 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { Button, StyleSheet, Text, View, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
 import ShutterButton from "@/components/ShutterButton";
@@ -17,6 +17,7 @@ import { Product } from "@/types/Product";
 import ProductTile from "@/components/ProductTile";
 import ProductTileSmall from "@/components/ProductTileSmall";
 import SadCat from "@/components/SadCat";
+import { ImageContext } from "@/providers/ImageContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ScanScreen() {
@@ -24,6 +25,8 @@ export default function ScanScreen() {
   const [products, setProducts] = useState<Product[] | undefined>(undefined);
   const cameraViewRef = useRef<CameraView>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const { image, setImage } = useContext(ImageContext);
 
   if (!permission) {
     return <View />;
@@ -50,6 +53,9 @@ export default function ScanScreen() {
       quality: 0.25,
     });
 
+    const encodedImage = picture?.base64;
+    setImage(encodedImage);
+
     const response = await fetch(
       "https://blasterhacks.lenixsavesthe.world/groq-ocr",
       {
@@ -57,7 +63,7 @@ export default function ScanScreen() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image: picture?.base64 }),
+        body: JSON.stringify({ image: encodedImage }),
       }
     );
 
@@ -67,31 +73,30 @@ export default function ScanScreen() {
     }
 
     const ps: Product[] = await response.json();
+    setProducts(ps || []);
     console.log(ps);
 
     // let savedProducts: Product[]
-    const savedProds: string = (await AsyncStorage.getItem("product-history")) || "";
-    const parsedProds: Product[] = JSON.parse(savedProds) as Product[]
+    const savedProds: string =
+      (await AsyncStorage.getItem("product-history")) || "";
+    const parsedProds: Product[] = JSON.parse(savedProds) as Product[];
 
-    parsedProds.push(ps[0])
-    console.log("prods after push", parsedProds)
+    parsedProds.push(ps[0]);
+    console.log("prods after push", parsedProds);
 
-    const pJson = JSON.stringify(parsedProds)
-    await AsyncStorage.setItem('product-history', pJson); 
-    console.log("saved product history locally")
-
-    setProducts(ps || []);
+    const pJson = JSON.stringify(parsedProds);
+    await AsyncStorage.setItem("product-history", pJson);
+    console.log("saved product history locally");
   };
 
   // Adjust snapPoints: when no products are found, raise the bottom sheet higher (e.g. 400)
-  const snapPoints =
-    !products
-      ? [350]
-      : products.length === 0
-      ? [300]
-      : products.length === 1
-      ? [350]
-      : [350, "80%"];
+  const snapPoints = !products
+    ? [350]
+    : products.length === 0
+    ? [300]
+    : products.length === 1
+    ? [350]
+    : [350, "80%"];
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -122,14 +127,7 @@ export default function ScanScreen() {
                     <View style={styles.spacedContainer}>
                       <OrDivider />
                       {products.slice(1).map((product) => (
-                        <Pressable
-                          key={product.product_id}
-                          onPress={() =>
-                            router.push(`/products/${product.product_id}`)
-                          }
-                        >
-                          <ProductTileSmall product={product} />
-                        </Pressable>
+                        <ProductTileSmall product={product} />
                       ))}
                     </View>
                   )}
@@ -141,7 +139,7 @@ export default function ScanScreen() {
                 <SadCat />
                 <Pressable
                   style={styles.noMatchButton}
-                  onPress={() => router.push("/manualfill")}
+                  onPress={() => router.push("/form")}
                 >
                   <Text style={styles.noMatchButtonText}>No Match</Text>
                 </Pressable>
