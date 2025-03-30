@@ -134,7 +134,17 @@ async def groq_api_call(request: ImageRequest):
         raise HTTPException(status_code=500, detail=f"Error processing Groq request: {str(e)}")
 
     generated_search_query = chat_completion.choices[0].message.content
-    return search_db(generated_search_query)
+    query_list = generated_search_query
+
+    for i in range(0, len(query_list)):
+        q = search_db(" ".join(query_list))
+        print("q:", q)
+        if q == None:
+            query_list = query_list[:-1]
+        else:
+            return q
+
+    return search_db(q["found_text"])
 
     res = json.loads(generated_search_query)
     # if type(q) == ''
