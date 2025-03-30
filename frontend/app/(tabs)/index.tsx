@@ -62,9 +62,7 @@ const ProductCard = ({ product }: { product: Product }) => {
             Ingredient Details: {product.benefits}
           </Text>
           <Text style={styles.detailText}>Concerns: {product.concerns}</Text>
-          <Text style={styles.detailText}>
-            Hair Types: {product.hairTypes}
-          </Text>
+          <Text style={styles.detailText}>Hair Types: {product.hairTypes}</Text>
         </View>
       )}
     </Pressable>
@@ -95,25 +93,27 @@ export default function Index() {
         }
 
         // Transform the API response into our Product interface.
-        const transformed = productsArray.map((item: any, index: number) => ({
-          id: item.product_id ? String(item.product_id) : `no-id-${index}`,
-          name: item.product_name || "No name",
-          brand: item.brand_name || "No brand",
-          rating: item.avg_rating || item.rank || 0,
-          hairTexture: Array.isArray(item.textures)
-            ? item.textures.join(", ")
-            : item.textures || "N/A",
-          imageUrl: item.image_url || "https://via.placeholder.com/200",
-          benefits: Array.isArray(item.ingredients)
-            ? item.ingredients.join(", ")
-            : item.ingredients || "N/A",
-          concerns: Array.isArray(item.concerns)
-            ? item.concerns.join(", ")
-            : item.concerns || "N/A",
-          hairTypes: Array.isArray(item.types)
-            ? item.types.join(", ")
-            : item.types || "N/A",
-        }));
+        const transformed = productsArray
+          .slice(1, 20)
+          .map((item: any, index: number) => ({
+            id: item.product_id ? String(item.product_id) : `no-id-${index}`,
+            name: item.product_name || "No name",
+            brand: item.brand_name || "No brand",
+            rating: item.avg_rating || item.rank || 0,
+            hairTexture: Array.isArray(item.textures)
+              ? item.textures.join(", ")
+              : item.textures || "N/A",
+            imageUrl: item.image_url || "https://via.placeholder.com/200",
+            benefits: Array.isArray(item.ingredients)
+              ? item.ingredients.join(", ")
+              : item.ingredients || "N/A",
+            concerns: Array.isArray(item.concerns)
+              ? item.concerns.join(", ")
+              : item.concerns || "N/A",
+            hairTypes: Array.isArray(item.types)
+              ? item.types.join(", ")
+              : item.types || "N/A",
+          }));
 
         setProducts(transformed);
       } catch (error) {
@@ -124,11 +124,6 @@ export default function Index() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerRight: () => <ScannerLink />,
-        }}
-      />
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 60 }}>
         {/* Header Section */}
         <View style={styles.headerSection}>
