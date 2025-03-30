@@ -35,7 +35,6 @@ const ProductCard = ({ product }: { product: IProduct }) => {
           <Text style={styles.productName}>{product.name}</Text>
           <Text style={styles.productBrand}>{product.brand}</Text>
         </View>
-        <Text style={styles.rating}>⭐ {product.rating}</Text>
       </View>
       <Text style={styles.hairTexture}>Ideal for: {product.hairTexture}</Text>
       <Pressable onPress={() => setExpanded(!expanded)}>
