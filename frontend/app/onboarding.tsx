@@ -153,7 +153,15 @@ export default function OnboardingPage() {
       >
         {/* Welcome Page */}
         <View style={styles.page} key="1">
+          {/* Hero image stretches full width */}
           <Hero imageSource={require("@/assets/images/phone-hand.svg")} />
+          {/* Text content remains padded */}
+          <View style={styles.textContainer}>
+            <Text style={styles.welcomeTitle}>Welcome to HairBase</Text>
+            <Text style={styles.welcomeSubtitle}>
+              The community database that YOUR hair needs
+            </Text>
+          </View>
         </View>
 
         {/* Page 1: Hair Texture */}
@@ -252,12 +260,31 @@ const styles = StyleSheet.create({
   pagerView: {
     flex: 1,
   },
+  // Page style: no horizontal padding so images can be full width.
   page: {
     flex: 1,
+    //justifyContent: "center",
+  },
+  // Container for text content on pages to keep padding.
+  textContainer: {
+    paddingHorizontal: 20,
+  },
+  welcomeTitle: {
+    fontSize: 36,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 20,
+    color: "#000",
+  },
+  welcomeSubtitle: {
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#666",
   },
   questionContainer: {
     width: "100%",
-    paddingHorizontal: 20,
+    paddingHorizontal: 20, // Keep question boxes padded.
   },
   questionText: {
     fontSize: 18,
