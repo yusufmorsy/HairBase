@@ -39,6 +39,26 @@ def connect_to_db():
 
 conn = connect_to_db()
 
+def best_search_query(query_list: list[str], qLen: int):
+
+    bRep = 2**qLen
+
+    for i in range (1, bRep):
+        curr_query_list = []
+
+        # create list of items to be included in the queue based off of the binary repesentation
+        bnrStr = bin(i)[2:].zfill(qLen)
+        for idx in range (0, qLen):
+            if bnrStr[idx] == '1':
+                curr_query_list.append(query_list[idx])
+
+        r = search_db(" ".join(curr_query_list))
+        if r == None:
+            continue
+        if len(r) < 5:
+            for i in r:
+                print(i["brand_name"] + " " + i["product_name"])
+
 #prompt
 @app.post("/groq-ocr")
 async def groq_api_call(request: ImageRequest):
@@ -113,6 +133,8 @@ async def groq_api_call(request: ImageRequest):
             query_list = query_list[:-1]
         else:
             return q
+        
+    best_search_query(query_list, len(query_list))
 
     return search_db(q["found_text"])
 
@@ -166,6 +188,7 @@ def product_search(query: str):
 
     return search_db(query)
 
+<<<<<<< HEAD
 @app.get("/show_product")
 def show_product(product_id: int):      
     with conn.cursor() as cur:
@@ -232,3 +255,9 @@ def groq_concerns(query: str):
             "vegan",
         ]
     }
+=======
+
+# def search_best_query(query: list[str]):
+
+    
+>>>>>>> a2724bb (updated search)
