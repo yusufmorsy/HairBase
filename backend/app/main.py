@@ -71,7 +71,13 @@ async def groq_api_call(request: ImageRequest):
                         {"type": "text", "text": """
                         This is a picture of a hair product, like shampoo or conditioner. Using this image,
                         decypher the text you see on the product label, and format it in a way that would
-                        create a search quer for a POSTGRESQL Database.
+                        create a search query for a POSTGRESQL Database. Format your response as, as well
+                         as how confident you are in your response as follows:
+
+                         {
+                            "found_text": "Aveda Shampure",
+                            "confidence": 0.70274
+                         }
                          
                         For Example, if you saw an image of a shampoo bottle with the text 'Aveda' and 'Shampure'.
                         You would respond with, "Aveda Shampure". Only respond with next that you are confident about.
@@ -87,7 +93,9 @@ async def groq_api_call(request: ImageRequest):
                     ],
                 }
             ],
+            response_format={"type": "json_object"},
             model="llama-3.2-11b-vision-preview",
+            stream=False
         )
 
     except Exception as e:
