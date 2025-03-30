@@ -1,15 +1,35 @@
-import { StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View, TouchableOpacity } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
+import React, { useState } from "react";
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onSearch: (query: string) => void;
+}
+
+export default function SearchBar({ onSearch }: SearchBarProps) {
+  const [query, setQuery] = useState("");
+
+  const handleSearch = () => {
+    if (query.trim()) {
+      onSearch(query);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Search..."
         style={styles.input}
         placeholderTextColor="#858585"
+        value={query}
+        onChangeText={setQuery}
+        onSubmitEditing={handleSearch}
+        returnKeyType="search"
+        blurOnSubmit={true}
       />
-      <Feather name="search" color="#858585" size={18} />
+      <TouchableOpacity onPress={handleSearch}>
+        <Feather name="search" color="#858585" size={18} />
+      </TouchableOpacity>
     </View>
   );
 }
