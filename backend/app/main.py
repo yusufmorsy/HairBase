@@ -143,3 +143,45 @@ def product_search(query: str):
             return q
     
     return search_db(query)
+
+@app.get("/show_product")
+def show_product(product_id: int):      
+    with conn.cursor() as cur:
+        cur.execute("""
+                SELECT 
+                    json_agg(
+                        json_build_object(
+                            'product_id', products.product_id,
+                            'product_name', product_name,
+                            'brand_name', brand_name,
+                            'image_url', image_url,
+                            'concerns', (
+                                SELECT json_agg(concerns.name) 
+                                FROM concerns_to_products 
+                                JOIN concerns ON concerns.id = concerns_to_products.concern_id
+                                WHERE concerns_to_products.product_id = products.product_id
+                            ),
+                            'ingredients', (
+                                SELECT json_agg(ingredients.name)
+                                FROM ingredient_to_products
+                                JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
+                                WHERE ingredient_to_products.product_id = products.product_id
+                            ),
+                            'textures', (
+                                SELECT json_agg(textures.name)
+                                FROM textures_to_products
+                                JOIN textures ON textures.id = textures_to_products.texture_id
+                                WHERE textures_to_products.product_id = products.product_id
+                            ),
+                            'types', (
+                                SELECT json_agg(types.name)
+                                FROM types_to_products
+                                JOIN types ON types.id = types_to_products.type_id
+                                WHERE types_to_products.product_id = products.product_id
+                            )
+                        )
+                    ) as json_result
+                FROM products
+                WHERE product_id = %s;
+                """, (product_id,))
+        return cur.fetchone()[0]  # Get the JSON array result
