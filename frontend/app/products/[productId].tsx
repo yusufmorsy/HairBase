@@ -3,12 +3,32 @@ import { Image } from "expo-image";
 import { useGlobalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, ScrollView, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface UserPreferences {
+  hairTypes: string[];
+  hairTextures: string[];
+  ingredients: string[];
+}
 
 export default function ShowProduct() {
   const globalParams = useGlobalSearchParams();
   const product_id = globalParams.productId;
 
   const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+
+  // Check if any of the product values match the user preferences (case-insensitive)
+  const hasMatch = (productItems: string[], preferenceItems: string[]): boolean => {
+    if (!Array.isArray(productItems)) return false;
+    return productItems.some(item =>
+      preferenceItems.some(pref => item.toLowerCase() === pref.toLowerCase())
+    );
+  };
+
+  // Helper function to join array items with a comma
+  const joinWithComma = (data: any) =>
+    Array.isArray(data) ? data.join(", ") : data;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -24,20 +44,38 @@ export default function ShowProduct() {
       }
     };
 
+    const fetchUserPreferences = async () => {
+      try {
+        const prefString = await AsyncStorage.getItem("userPreferences");
+        if (prefString) {
+          const prefs: UserPreferences = JSON.parse(prefString);
+          setUserPreferences(prefs);
+        } else {
+          // If no preferences are found, you can set some defaults or handle it accordingly
+          const defaultPrefs: UserPreferences = {
+            hairTypes: [],
+            hairTextures: [],
+            ingredients: [],
+          };
+          setUserPreferences(defaultPrefs);
+        }
+      } catch (error) {
+        console.error("Error fetching user preferences:", error);
+      }
+    };
+
     fetchProduct();
+    fetchUserPreferences();
   }, [product_id]);
 
-  if (!product) {
+  // Only render if both product and user preferences are available
+  if (!product || !userPreferences) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#888" />
       </View>
     );
   }
-
-  // Helper function to join array items with a comma
-  const joinWithComma = (data: any) =>
-    Array.isArray(data) ? data.join(", ") : data;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -51,13 +89,23 @@ export default function ShowProduct() {
         </View>
         {product.textures && (
           <Text style={styles.hairTexture}>
-            Ideal for: {joinWithComma(product.textures)}
+            Ideal for: {joinWithComma(product.textures)}{" "}
+            {hasMatch(product.textures, userPreferences.hairTextures) ? (
+              <Text style={styles.check}>✓</Text>
+            ) : (
+              <Text style={styles.x}>✗</Text>
+            )}
           </Text>
         )}
         <View style={styles.expandedContent}>
           {product.ingredients && (
             <Text style={styles.detailText}>
-              Ingredient Details: {joinWithComma(product.ingredients)}
+              Ingredient Details: {joinWithComma(product.ingredients)}{" "}
+              {hasMatch(product.ingredients, userPreferences.ingredients) ? (
+                <Text style={styles.check}>✓</Text>
+              ) : (
+                <Text style={styles.x}>✗</Text>
+              )}
             </Text>
           )}
           {product.concerns && (
@@ -67,7 +115,12 @@ export default function ShowProduct() {
           )}
           {product.types && (
             <Text style={styles.detailText}>
-              Hair Types: {joinWithComma(product.types)}
+              Hair Types: {joinWithComma(product.types)}{" "}
+              {hasMatch(product.types, userPreferences.hairTypes) ? (
+                <Text style={styles.check}>✓</Text>
+              ) : (
+                <Text style={styles.x}>✗</Text>
+              )}
             </Text>
           )}
         </View>
@@ -130,5 +183,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
     marginBottom: 4,
+  },
+  check: {
+    color: "green",
+    fontSize: 20,
+    marginLeft: 4,
+  },
+  x: {
+    color: "red",
+    fontSize: 20,
+    marginLeft: 4,
   },
 });
