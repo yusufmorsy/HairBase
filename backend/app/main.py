@@ -93,7 +93,7 @@ async def groq_api_call(request: ImageRequest):
                          that you are not confident in. It is always better to have less terms in the search.
                          Give the example as a plain string, with no additional formatting. For instance, if you
                          saw a picture of a Dove Lavender shampoo, you should simply say "Dove Lavender", without
-                         the quotes.
+                         the quotes. Your response should never be more than around 10 words.
                         """},
 
                         # {"type": "text", "text": """
