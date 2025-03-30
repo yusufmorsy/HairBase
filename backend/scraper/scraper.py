@@ -55,21 +55,49 @@ def parseRegex(text: str):
         t = textures
         textures = types
         types = t
+    
+    # for i in range (0, len(types)):
+    #     if types[i] not in anyType:
+    #         types.remove(types[i])
+
+    for i in range(0, len(types)):
+        for j in anyType:
+            if types[i] in j:
+                print(j)
+                types[i] = j
+                
+
 
     texture_list = textures[0].split("Hair")[0].split(" ")
     texture_list = [t.replace(",", "") for t in texture_list]
-    try:
-        texture_list.remove('and')
-    except ValueError:
-        pass
 
     types_list = types[0].split("Hair")[0].split(" ")
     types_list = [t.replace(",", "") for t in types_list]
+    types_list = [t.replace("Key", "") for t in types_list]
+    try:
+        texture_list.remove("")
+        types_list.remove("")
+        types_list.remove("and")
+
+    except ValueError:
+        pass
+
     try:
         types_list.remove('and')
     except ValueError:
         pass
 
+    try:
+        texture_list.remove('and')
+    except ValueError:
+        pass
+
+    try:
+        types_list.remove('Benefits')
+    except ValueError:
+        pass
+
+    # print(texture_list)
     return texture_list, types_list, benefit_strip
 
 def normalizeText(text: str) -> str:
@@ -123,6 +151,7 @@ def getPagefromCat(page:int, category: str) -> List[Product]:
     )
 
     response = requests.get('https://sephora.cnstrc.com/browse/group_id/' + category, headers=headers, params=params)
+    # print(response.json())
     resp = response.json()
     results = resp["response"]["results"]
     for item in results:
@@ -136,13 +165,13 @@ def getPagefromCat(page:int, category: str) -> List[Product]:
                 case "Ingredient Preferences":
                     ingredients = i["values"]
         
+        try:
             img = item["data"]["image_url"].split("?")[0]
             avg_rating = item["data"]["rating"]
             rating_cnt = item["data"]["totalReviews"]
             sku = item["data"]["currentSku"]["skuId"]
             price = item["data"]["currentSku"]["listPriceFloat"]
             extDesc = item["data"]["extended_description"]
-        try:
             size = item["data"]["currentSku"]["variationValue"]
         except KeyError as e:
             if e.args[0] == "variationValue":
