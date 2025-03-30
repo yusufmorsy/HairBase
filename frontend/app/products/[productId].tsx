@@ -87,33 +87,24 @@ export default function ShowProduct() {
             <Text style={styles.productBrand}>{product.brand_name}</Text>
           </View>
         </View>
-        {product.textures && (
-          <Text style={styles.hairTexture}>
-            Ideal for: {joinWithComma(product.textures)}{" "}
-            {userPreferences &&
-            product.textures.includes(userPreferences.hairTexture) ? (
-              <Text style={styles.check}>✓</Text>
-            ) : (
-              <Text style={styles.x}>✗</Text>
-            )}
+        {product.ingredients && (
+          <Text style={styles.detailText}>
+            Ingredient Details: {joinWithComma(product.ingredients)}{" "}
           </Text>
         )}
         <View style={styles.expandedContent}>
-          {/* {product.ingredients && (
-            <Text style={styles.detailText}>
-              Ingredient Details: {joinWithComma(product.ingredients)}{" "}
-              {hasMatch(product.ingredients, userPreferences.ingredientPrefs) ? (
+          {product.textures && (
+            <Text style={styles.hairTexture}>
+              Ideal for: {joinWithComma(product.textures)}{" "}
+              {userPreferences &&
+              product.textures.includes(userPreferences.hairTexture) ? (
                 <Text style={styles.check}>✓</Text>
               ) : (
                 <Text style={styles.x}>✗</Text>
               )}
             </Text>
-          )} */}
-          {/* {product.concerns && (
-            <Text style={styles.detailText}>
-              Concerns: {joinWithComma(product.concerns)}
-            </Text>
-          )} */}
+          )}
+
           {product.types && (
             <Text style={styles.detailText}>
               Hair Types: {joinWithComma(product.types)}{" "}
