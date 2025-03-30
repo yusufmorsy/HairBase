@@ -47,7 +47,7 @@ export default function MyFormyPage() {
       <InputGroup
         label="Brand Name"
         value={brandName}
-        onChangeText={setProductName}
+        onChangeText={setBrandName}
       />
       <Button
         text="Submit"

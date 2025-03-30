@@ -284,16 +284,21 @@ def add_product(request: ProductRequest):
         cur.execute("""INSERT INTO products (product_id, product_name, product_sku, brand_name, image_url) VALUES (%s, %s, %s, %s, %s)""", (pk, request.product_name, str(pk), request.brand_name, image_url))
         
         for texture in request.textures:
-            cur.execute("""INSERT INTO textures_to_products (texture_id, product_id) VALUES (SELECT id FROM textures WHERE lower(name) = lower(%s), %s)""", (texture, pk,))
-        
+            cur.execute("""SELECT id FROM textures WHERE lower(name) = lower(%s)""", (texture,))
+            cur.execute("""INSERT INTO textures_to_products (texture_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
+
+
         for type in request.types:
-            cur.execute("""INSERT INTO types_to_products (type_id, product_id) VALUES (SELECT id FROM types WHERE lower(name) = lower(%s), %s)""", (type, pk,))
+            cur.execute("""SELECT id FROM types WHERE lower(name) = lower(%s)""", (type,))
+            cur.execute("""INSERT INTO types_to_products (type_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
 
         for concern in request.concerns:
-            cur.execute("""INSERT INTO concerns_to_products (concern_id, product_id) VALUES (SELECT id FROM concerns WHERE lower(name) = lower(%s), %s)""", (type, pk,))
+            cur.execute("""SELECT id FROM concerns WHERE lower(name) = lower(%s)""", (concern,))
+            cur.execute("""INSERT INTO concerns_to_products (concern_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
 
         for ingredient in request.ingredients:
-            cur.execute("""INSERT INTO ingredient_to_products (ingredient_id, product_id) VALUES (SELECT id FROM ingredients WHERE lower(name) = lower(%s), %s)""", (type, pk,))
+            cur.execute("""SELECT id FROM ingredients WHERE lower(name) = lower(%s)""", (ingredient,))
+            cur.execute("""INSERT INTO ingredient_to_products (ingredient_id, product_id) VALUES (%s, %s)""", (cur.fetchone()[0], pk))
 
     conn.commit()
 
