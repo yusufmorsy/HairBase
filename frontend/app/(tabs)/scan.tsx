@@ -9,7 +9,7 @@ import {
   BottomSheetScrollView,
   BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
-import ProductSkeleton from "@/components/ProductSkeleton";
+import ProductSkeleton from "@/components/ProductSkeletonSmall";
 import { router } from "expo-router";
 
 type Product = {
@@ -157,7 +157,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Styles for the MatchedProductCard
   card: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -193,7 +192,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 8,
   },
-  // Button row styling
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -20,7 +20,9 @@ export default function Hero({ imageSource }: Props) {
       </Svg>
       <Svg
         viewBox="0 0 400 100"
-        height="90"
+        height="100"
+        width="100%"
+        preserveAspectRatio="none"
         style={{
           position: "absolute",
           bottom: 0,
