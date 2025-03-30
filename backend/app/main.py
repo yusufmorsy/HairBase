@@ -207,3 +207,28 @@ def show_product(product_id: int):
                 WHERE product_id = %s;
                 """, (product_id,))
         return cur.fetchone()[0][0]  # Get the JSON array result
+
+@app.get("/groq_concerns")
+def groq_concerns(query: str):
+    
+    return {
+        "name": "Product name",
+        "brand": "Brand name",
+        "textures": [
+            "straight",
+            "wavy",
+            "curly",
+            "coily"
+        ],
+        "types": [
+            "fine",
+            "medium",
+            "thick",
+        ],
+        "concerns": [
+            "dryness"
+        ],
+        "ingredients": [
+            "vegan",
+        ]
+    }
