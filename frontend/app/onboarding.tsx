@@ -14,6 +14,7 @@ import {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { Product } from "@/types/Product";
 
 // A simple multiple-choice component (single selection)
 const MultipleChoice = ({
@@ -102,6 +103,15 @@ export default function OnboardingPage() {
       "onboarding-data",
       JSON.stringify(onboardingData)
     );
+
+     let ps: Product[] = []
+
+    await AsyncStorage.setItem(
+      "product-history",
+      JSON.stringify(ps)
+    );
+
+
     router.replace("/");
   };
 
