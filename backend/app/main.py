@@ -335,36 +335,39 @@ def get_recommendations(texture:str,type:str, concerns:list[str] = None, ingredi
     # 3 - Medium
     # 4 - Thick
     with conn.cursor(row_factory=dict_row) as cur:
+        # Build the query dynamically
         query = """
             SELECT 
-                products.product_id,
-                products.product_name,
-                products.brand_name,
-                products.image_url,
-                (
-                    SELECT json_agg(textures.name)
-                    FROM textures_to_products
-                    JOIN textures ON textures.id = textures_to_products.texture_id
-                    WHERE textures_to_products.product_id = products.product_id
-                ) AS textures,
-                (
-                    SELECT json_agg(types.name)
-                    FROM types_to_products
-                    JOIN types ON types.id = types_to_products.type_id
-                    WHERE types_to_products.product_id = products.product_id
-                ) AS types,
-                (
-                    SELECT json_agg(concerns.name)
-                    FROM concerns_to_products
-                    JOIN concerns ON concerns.id = concerns_to_products.concern_id
-                    WHERE concerns_to_products.product_id = products.product_id
-                ) AS concerns,
-                (
-                    SELECT json_agg(ingredients.name)
-                    FROM ingredient_to_products
-                    JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
-                    WHERE ingredient_to_products.product_id = products.product_id
-                ) AS ingredients
+                json_build_object(
+                    'product_id', products.product_id,
+                    'product_name', products.product_name,
+                    'brand_name', products.brand_name,
+                    'image_url', products.image_url,
+                    'textures', (
+                        SELECT json_agg(textures.name)
+                        FROM textures_to_products
+                        JOIN textures ON textures.id = textures_to_products.texture_id
+                        WHERE textures_to_products.product_id = products.product_id
+                    ),
+                    'types', (
+                        SELECT json_agg(types.name)
+                        FROM types_to_products
+                        JOIN types ON types.id = types_to_products.type_id
+                        WHERE types_to_products.product_id = products.product_id
+                    ),
+                    'concerns', (
+                        SELECT json_agg(concerns.name)
+                        FROM concerns_to_products
+                        JOIN concerns ON concerns.id = concerns_to_products.concern_id
+                        WHERE concerns_to_products.product_id = products.product_id
+                    ),
+                    'ingredients', (
+                        SELECT json_agg(ingredients.name)
+                        FROM ingredient_to_products
+                        JOIN ingredients ON ingredients.id = ingredient_to_products.ingredient_id
+                        WHERE ingredient_to_products.product_id = products.product_id
+                    )
+                ) AS product
             FROM products
             WHERE 1=1
         """
@@ -423,5 +426,5 @@ def get_recommendations(texture:str,type:str, concerns:list[str] = None, ingredi
         cur.execute(query, params)
         recommendations = cur.fetchall()
 
-    return {"recommendations": recommendations}
-
+    # Extract the JSON objects from the query result
+    return {"recommendations": [row["product"] for row in recommendations]}
