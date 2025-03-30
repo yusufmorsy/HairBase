@@ -74,6 +74,7 @@ async def groq_api_call(request: ImageRequest):
     return search_db(generated_search_query)
 
 def search_db(query: str):
+    print(f"incoming search query: {query}")
     with conn.cursor() as cur:
         cur.execute("""
                 SELECT 
@@ -83,7 +84,7 @@ def search_db(query: str):
                             'product_name', product_name,
                             'brand_name', brand_name,
                             'image_url', image_url,
-                            'rank', ts_rank(to_tsvector(product_name || ' ' || brand_name), websearch_to_tsquery('english', %s)),
+                            'rank', ts_rank(to_tsvector(unaccent(product_name) || ' ' || unaccent(brand_name)), websearch_to_tsquery('english', unaccent(%s))),
                             'concerns', (
                                 SELECT json_agg(concerns.name) 
                                 FROM concerns_to_products 
@@ -111,11 +112,20 @@ def search_db(query: str):
                         )
                     ) as json_result
                 FROM products
-                WHERE to_tsvector(product_name || ' ' || brand_name) @@ websearch_to_tsquery('english', %s)
+                WHERE to_tsvector(unaccent(product_name) || ' ' || unaccent(brand_name)) @@ websearch_to_tsquery('english', unaccent(%s))
                 LIMIT 20;
                 """, (query, query))
         return cur.fetchone()[0]  # Get the JSON array result
         
 @app.get("/search")
 def product_search(query: str):
+
+    query_list = query.split(" ")
+    for i in range(0, len(query_list)):
+        q = search_db(" ".join(query_list))
+        if q == None:
+            query_list = query_list[:-1]
+        else:
+            return q
+    
     return search_db(query)
