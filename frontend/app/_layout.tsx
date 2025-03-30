@@ -24,8 +24,9 @@ export default function RootLayout() {
           navigationBarTranslucent: true,
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "Results" }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="manualfill" options={{ headerShown: true, title: "Manual Fill" }} />
       </Stack>
       <StatusBar style="dark" />
     </>
