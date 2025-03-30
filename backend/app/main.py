@@ -86,20 +86,31 @@ async def groq_api_call(request: ImageRequest):
                     "role": "user",
                     "content": [
                         {"type": "text", "text": """
-                         This is a picture of a hair product (like shampoo or conditioner). Using only
-                         the product and brand name (no extra information), please give me a search query
-                         to find this item. For example, for a different product, with the name 'Lavender
-                         & Volume', by a company named 'Dove', you would say, "Dove Lavender & Volume".
-                         It might not be that simple, though, so do your best. Your response should be as
-                         minimal as possible, while still being able to find the find the product. If you
-                         aren't confident about something, leave it out. If you aren't confident about
-                         something, but you think it is necessary to find the product, put it last in the
-                         query. For example, if you saw "Dove", "Lavender", and "Beauty" (and you thought
-                         beauty was a part of the product's name, but weren't confident about it, possibly
-                         because it is slightly distorted, or might not be part of the product name) you
-                         would write "Dove Lavender", or possibly "Dove Lavender Beauty", but definitely
-                         not "Dove Beauty Lavender". Please do not include any additional formatting or
-                         commentary."""},
+                        This is a picture of a hair product. Your job is to analyze the picture and generate
+                         a search query in the form [Company name] [Product Name]. You should expect that these
+                         are well-known companies, so you should use your prior knowledge to infer their names,
+                         in cases where they are not clear. If you are ever unsure, leave out information
+                         that you are not confident in. It is always better to have less terms in the search.
+                         Give the example as a plain string, with no additional formatting. For instance, if you
+                         saw a picture of a Dove Lavender shampoo, you should simply say "Dove Lavender", without
+                         the quotes. Your response should never be more than around 10 words.
+                        """},
+
+                        # {"type": "text", "text": """
+                        #  This is a picture of a hair product (like shampoo or conditioner). Using only
+                        #  the product and brand name (no extra information), please give me a search query
+                        #  to find this item. For example, for a different product, with the name 'Lavender
+                        #  & Volume', by a company named 'Dove', you would say, "Dove Lavender & Volume".
+                        #  It might not be that simple, though, so do your best. Your response should be as
+                        #  minimal as possible, while still being able to find the find the product. If you
+                        #  aren't confident about something, leave it out. If you aren't confident about
+                        #  something, but you think it is necessary to find the product, put it last in the
+                        #  query. For example, if you saw "Dove", "Lavender", and "Beauty" (and you thought
+                        #  beauty was a part of the product's name, but weren't confident about it, possibly
+                        #  because it is slightly distorted, or might not be part of the product name) you
+                        #  would write "Dove Lavender", or possibly "Dove Lavender Beauty", but definitely
+                        #  not "Dove Beauty Lavender". Please do not include any additional formatting or
+                        #  commentary."""},
                         # {"type": "text", "text": """
                         # This is a picture of a hair product, like shampoo or conditioner. Using this image,
                         # decypher the text you see on the product label, and format it in a way that would
@@ -125,7 +136,7 @@ async def groq_api_call(request: ImageRequest):
                     ],
                 }
             ],
-            response_format={"type": "json_object"},
+            # response_format={"type": "json_object"},
             model="llama-3.2-11b-vision-preview",
             stream=False
         )
@@ -134,14 +145,14 @@ async def groq_api_call(request: ImageRequest):
         raise HTTPException(status_code=500, detail=f"Error processing Groq request: {str(e)}")
 
     generated_search_query = chat_completion.choices[0].message.content
-    query_list = generated_search_query
+    query_list = generated_search_query.split(" ")
 
-    # for i in range(0, len(query_list)):
-    #     q = search_db(" ".join(query_list))
-    #     if q == None:
-    #         query_list = query_list[:-1]
-    #     else:
-    #         return q
+    for i in range(0, len(query_list)):
+        q = search_db(" ".join(query_list))
+        if q == None:
+            query_list = query_list[:-1]
+        else:
+            return q
 
     return search_db(generated_search_query)
 
