@@ -125,7 +125,7 @@ async def groq_api_call(request: ImageRequest):
                     ],
                 }
             ],
-            response_format={"type": "json_object"},
+            # response_format={"type": "json_object"},
             model="llama-3.2-11b-vision-preview",
             stream=False
         )
