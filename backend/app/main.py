@@ -52,6 +52,9 @@ def best_search_query(query_list: list[str], qLen: int):
             if bnrStr[idx] == '1':
                 curr_query_list.append(query_list[idx])
 
+        if len(curr_query_list) == 1:
+            continue
+
         r = search_db(" ".join(curr_query_list))
         if r == None:
             continue
