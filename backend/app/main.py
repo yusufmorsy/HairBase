@@ -188,7 +188,6 @@ def product_search(query: str):
 
     return search_db(query)
 
-<<<<<<< HEAD
 @app.get("/show_product")
 def show_product(product_id: int):      
     with conn.cursor() as cur:
@@ -255,9 +254,3 @@ def groq_concerns(query: str):
             "vegan",
         ]
     }
-=======
-
-# def search_best_query(query: list[str]):
-
-    
->>>>>>> a2724bb (updated search)
