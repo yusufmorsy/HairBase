@@ -23,14 +23,18 @@ def insert_product(product: Product, conn: Connection[TupleRow]):
         try:
             cur.execute("INSERT INTO products (product_id, product_sku, product_name, brand_name, image_url, rating_cnt, avg_rating) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                         (product.sku, product.sku, product.name, product.brand, str(product.img), product.rating_cnt, str(product.avg_rating)))
+
         except psycopg.errors.UniqueViolation:
+            conn.rollback()
             raise psycopg.errors.UniqueViolation
 
-        conn.commit()
+
 
 
 #ex: for inserting into the pivot tables
 def insert_texture_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow]):
+    if attrs == None:
+        return
     with conn.cursor() as cur:
 
         for i in attrs:
@@ -43,6 +47,9 @@ def insert_texture_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow])
             texture_id = cur.fetchone()
             if texture_id:
                 texture_id = texture_id[0]
+            else:
+                print("invalid texture_id:", texture_id)
+                continue
 
             cur.execute("""
                     INSERT INTO textures_to_products (product_id, texture_id)
@@ -53,6 +60,8 @@ def insert_texture_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow])
         print("inserted texture pivots for sku:", sku)
 
 def insert_type_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow]):
+    if attrs == None:
+        return
 
     with conn.cursor() as cur:
         for i in attrs:
@@ -64,6 +73,9 @@ def insert_type_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow]):
             type_id = cur.fetchone()
             if type_id:
                 type_id = type_id[0]
+            else:
+                print("invalid type_id")
+                continue
 
             cur.execute("""
                 INSERT INTO types_to_products (product_id, type_id)
@@ -74,7 +86,10 @@ def insert_type_pivot(sku: str, attrs: List[str], conn: Connection[TupleRow]):
 
 def insert_ingredients(sku: str, attrs: List[str], conn: Connection[TupleRow]):
     # check to see if ingredient is already in DB
+    if attrs == None:
+        return
     with conn.cursor() as cur:
+        
         for i in attrs:
             cur.execute("""
                 SELECT * 
@@ -110,6 +125,8 @@ def insert_ingredients(sku: str, attrs: List[str], conn: Connection[TupleRow]):
         print("inserted type pivots for sku:", sku)
 
 def insert_concerns(sku: str, attrs: List[str], conn: Connection[TupleRow]):
+    if attrs == None:
+        return
     # check to see if ingredient is already in DB
     with conn.cursor() as cur:
         for i in attrs:
