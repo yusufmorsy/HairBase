@@ -16,6 +16,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Product } from "@/types/Product";
 
+export interface UserPreferences {
+  hairType: string;
+  hairTexture: string;
+  ingredientPrefs: string[];
+  concerns: string[];
+}
+
 // A simple multiple-choice component (single selection)
 const MultipleChoice = ({
   question,

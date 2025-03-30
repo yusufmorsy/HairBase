@@ -2,27 +2,32 @@ import { Product } from "@/types/Product";
 import { Image } from "expo-image";
 import { useGlobalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, ScrollView, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-interface UserPreferences {
-  hairTypes: string[];
-  hairTextures: string[];
-  ingredients: string[];
-}
+import { UserPreferences } from "../onboarding";
 
 export default function ShowProduct() {
   const globalParams = useGlobalSearchParams();
   const product_id = globalParams.productId;
 
   const [product, setProduct] = useState<Product | undefined>(undefined);
-  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const [userPreferences, setUserPreferences] =
+    useState<UserPreferences | null>(null);
 
   // Check if any of the product values match the user preferences (case-insensitive)
-  const hasMatch = (productItems: string[], preferenceItems: string[]): boolean => {
+  const hasMatch = (
+    productItems: string[],
+    preferenceItems: string[]
+  ): boolean => {
     if (!Array.isArray(productItems)) return false;
-    return productItems.some(item =>
-      preferenceItems.some(pref => item.toLowerCase() === pref.toLowerCase())
+    return productItems.some((item) =>
+      preferenceItems.some((pref) => item.toLowerCase() === pref.toLowerCase())
     );
   };
 
@@ -46,18 +51,10 @@ export default function ShowProduct() {
 
     const fetchUserPreferences = async () => {
       try {
-        const prefString = await AsyncStorage.getItem("userPreferences");
+        const prefString = await AsyncStorage.getItem("onboarding-data");
         if (prefString) {
           const prefs: UserPreferences = JSON.parse(prefString);
           setUserPreferences(prefs);
-        } else {
-          // If no preferences are found, you can set some defaults or handle it accordingly
-          const defaultPrefs: UserPreferences = {
-            hairTypes: [],
-            hairTextures: [],
-            ingredients: [],
-          };
-          setUserPreferences(defaultPrefs);
         }
       } catch (error) {
         console.error("Error fetching user preferences:", error);
@@ -80,7 +77,10 @@ export default function ShowProduct() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
-        <Image source={{ uri: product.image_url }} style={styles.productImage} />
+        <Image
+          source={{ uri: product.image_url }}
+          style={styles.productImage}
+        />
         <View style={styles.cardHeader}>
           <View>
             <Text style={styles.productName}>{product.product_name}</Text>
@@ -90,7 +90,8 @@ export default function ShowProduct() {
         {product.textures && (
           <Text style={styles.hairTexture}>
             Ideal for: {joinWithComma(product.textures)}{" "}
-            {hasMatch(product.textures, userPreferences.hairTextures) ? (
+            {userPreferences &&
+            product.textures.includes(userPreferences.hairTexture) ? (
               <Text style={styles.check}>✓</Text>
             ) : (
               <Text style={styles.x}>✗</Text>
@@ -98,25 +99,26 @@ export default function ShowProduct() {
           </Text>
         )}
         <View style={styles.expandedContent}>
-          {product.ingredients && (
+          {/* {product.ingredients && (
             <Text style={styles.detailText}>
               Ingredient Details: {joinWithComma(product.ingredients)}{" "}
-              {hasMatch(product.ingredients, userPreferences.ingredients) ? (
+              {hasMatch(product.ingredients, userPreferences.ingredientPrefs) ? (
                 <Text style={styles.check}>✓</Text>
               ) : (
                 <Text style={styles.x}>✗</Text>
               )}
             </Text>
-          )}
-          {product.concerns && (
+          )} */}
+          {/* {product.concerns && (
             <Text style={styles.detailText}>
               Concerns: {joinWithComma(product.concerns)}
             </Text>
-          )}
+          )} */}
           {product.types && (
             <Text style={styles.detailText}>
               Hair Types: {joinWithComma(product.types)}{" "}
-              {hasMatch(product.types, userPreferences.hairTypes) ? (
+              {userPreferences &&
+              product.types.includes(userPreferences.hairType) ? (
                 <Text style={styles.check}>✓</Text>
               ) : (
                 <Text style={styles.x}>✗</Text>
