@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useEffect, useRef, useState } from "react";
-import { Button, StyleSheet, Text, View, Image, Pressable } from "react-native";
+import { useRef, useState } from "react";
+import { Button, StyleSheet, Text, View, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
 import ShutterButton from "@/components/ShutterButton";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -42,7 +42,6 @@ export default function ScanScreen() {
   const takePicture = async () => {
     setProducts(undefined);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-
     bottomSheetModalRef.current?.present();
 
     const picture = await cameraViewRef?.current?.takePictureAsync({
@@ -50,20 +49,36 @@ export default function ScanScreen() {
       quality: 0.25,
     });
 
-    const ps: Product[] = await (
-      await fetch("https://blasterhacks.lenixsavesthe.world/groq-ocr", {
+    const response = await fetch(
+      "https://blasterhacks.lenixsavesthe.world/groq-ocr",
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ image: picture?.base64 }),
-      })
-    ).json();
+      }
+    );
 
+    if (response.status !== 200) {
+      setProducts([]);
+      return;
+    }
+
+    const ps: Product[] = await response.json();
     console.log(ps);
-
     setProducts(ps || []);
   };
+
+  // Adjust snapPoints: when no products are found, raise the bottom sheet higher (e.g. 400)
+  const snapPoints =
+    !products
+      ? [350]
+      : products.length === 0
+      ? [300]
+      : products.length === 1
+      ? [350]
+      : [350, "80%"];
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -77,48 +92,64 @@ export default function ScanScreen() {
         </CameraView>
         <BottomSheetModal
           ref={bottomSheetModalRef}
-          snapPoints={
-            !products
-              ? [350]
-              : products.length == 0
-              ? [150]
-              : products.length == 1
-              ? [350]
-              : [350, "80%"]
-          }
+          snapPoints={snapPoints}
           enableDynamicSizing={false}
           enablePanDownToClose={true}
           enableHandlePanningGesture={true}
           enableContentPanningGesture={false}
         >
-          <BottomSheetScrollView
-            contentContainerStyle={styles.modalContentContainer}
-          >
-            {products ? (
-              products.length ? (
+          {products ? (
+            products.length > 0 ? (
+              <BottomSheetScrollView
+                contentContainerStyle={styles.modalContentContainer}
+              >
                 <View style={styles.spacedContainer}>
-                  <ProductTile product={products[0]} />
+                  <Pressable
+                    onPress={() =>
+                      router.push(`/products/${products[0].product_id}`)
+                    }
+                  >
+                    <ProductTile product={products[0]} />
+                  </Pressable>
                   {products.length > 1 && (
                     <View style={styles.spacedContainer}>
                       <OrDivider />
                       {products.slice(1).map((product) => (
-                        <ProductTileSmall
-                          product={product}
+                        <Pressable
                           key={product.product_id}
-                        />
+                          onPress={() =>
+                            router.push(`/products/${product.product_id}`)
+                          }
+                        >
+                          <ProductTileSmall product={product} />
+                        </Pressable>
                       ))}
                     </View>
                   )}
                 </View>
-              ) : (
-                <SadCat />
-              )
+              </BottomSheetScrollView>
             ) : (
+              // No products found: fixed, non-scrollable view
+              <View style={styles.notFoundContainer}>
+                <SadCat />
+                <Pressable
+                  style={styles.noMatchButton}
+                  onPress={() => router.push("/manualfill")}
+                >
+                  <Text style={styles.noMatchButtonText}>No Match</Text>
+                </Pressable>
+              </View>
+            )
+          ) : (
+            // Loading state
+            <BottomSheetScrollView
+              contentContainerStyle={styles.modalContentContainer}
+            >
               <View style={styles.loadingContainer}>
                 <ProductSkeleton />
               </View>
-            )}
-          </BottomSheetScrollView>
+            </BottomSheetScrollView>
+          )}
         </BottomSheetModal>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
@@ -140,68 +171,30 @@ const styles = StyleSheet.create({
   modalContentContainer: {
     padding: 24,
   },
-  card: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    backgroundColor: "#fff",
-    overflow: "hidden",
-    marginBottom: 16,
-  },
-  productImage: {
-    width: "100%",
-    height: 200,
-    resizeMode: "cover",
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 8,
-    alignItems: "center",
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  productBrand: {
-    fontSize: 14,
-    color: "gray",
-  },
-  rating: {
-    fontSize: 14,
-  },
-  hairTexture: {
-    fontSize: 14,
-    paddingHorizontal: 8,
-    marginBottom: 8,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 16,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginHorizontal: 4,
-  },
-  correctButton: {
-    backgroundColor: "#4CAF50", // Green color
-  },
-  incorrectButton: {
-    backgroundColor: "#F44336", // Red color
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   loadingContainer: {
     gap: 16,
   },
   spacedContainer: {
     gap: 16,
+  },
+  // Fixed container for no-results state
+  notFoundContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  noMatchButton: {
+    backgroundColor: "#F44336",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 1,
+    width: "100%",
+  },
+  noMatchButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
