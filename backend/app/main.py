@@ -74,6 +74,7 @@ async def groq_api_call(request: ImageRequest):
     return search_db(generated_search_query)
 
 def search_db(query: str):
+    print(f"incoming search query: {query}")
     with conn.cursor() as cur:
         cur.execute("""
                 SELECT 
