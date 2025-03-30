@@ -55,9 +55,11 @@ def best_search_query(query_list: list[str], qLen: int):
         r = search_db(" ".join(curr_query_list))
         if r == None:
             continue
-        if len(r) < 5:
-            for i in r:
-                print(i["brand_name"] + " " + i["product_name"])
+        # if len(r) < 5:
+        #     for i in r:
+        #         print(i["brand_name"] + " " + i["product_name"])
+
+        print(len(r))
 
 #prompt
 @app.post("/groq-ocr")
