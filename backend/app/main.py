@@ -134,7 +134,7 @@ async def groq_api_call(request: ImageRequest):
         raise HTTPException(status_code=500, detail=f"Error processing Groq request: {str(e)}")
 
     generated_search_query = chat_completion.choices[0].message.content
-    query_list = generated_search_query
+    query_list = generated_search_query.split(" ")
 
     for i in range(0, len(query_list)):
         q = search_db(" ".join(query_list))
