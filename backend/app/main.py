@@ -280,7 +280,7 @@ def add_product(request: ProductRequest):
     image_url = f"https://blasterhacks.lenixsavesthe.world/img?id={add_img(request.image)}"
 
     with conn.cursor() as cur:
-        pk = time.time()
+        pk = int(time.time())
         cur.execute("""INSERT INTO products (product_id, product_name, product_sku, brand_name, image_url) VALUES (%s, %s, %s, %s, %s)""", (pk, request.product_name, str(pk), request.brand_name, image_url))
         
         for texture in request.textures:
