@@ -206,4 +206,4 @@ def show_product(product_id: int):
                 FROM products
                 WHERE product_id = %s;
                 """, (product_id,))
-        return cur.fetchone()[0]  # Get the JSON array result
+        return cur.fetchone()[0][0]  # Get the JSON array result
