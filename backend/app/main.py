@@ -136,15 +136,14 @@ async def groq_api_call(request: ImageRequest):
     generated_search_query = chat_completion.choices[0].message.content
     query_list = generated_search_query
 
-    for i in range(0, len(query_list)):
-        q = search_db(" ".join(query_list))
-        print("q:", q)
-        if q == None:
-            query_list = query_list[:-1]
-        else:
-            return q
+    # for i in range(0, len(query_list)):
+    #     q = search_db(" ".join(query_list))
+    #     if q == None:
+    #         query_list = query_list[:-1]
+    #     else:
+    #         return q
 
-    return search_db(q["found_text"])
+    return search_db(generated_search_query)
 
     res = json.loads(generated_search_query)
     # if type(q) == ''
